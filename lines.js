@@ -26,22 +26,18 @@ GCodeToGeometry.StraightLine = (function() {
             };
         };
 
-        that.calculateSize = function() {
-            var keys = Object.keys(that.start);
-            var i = 0;
-            var min = { x : 0 , y : 0, z : 0 }, max = { x : 0 , y : 0, z : 0 };
-
-            for(i=keys.length-1; i >= 0; i--) {
-                if(that.start[i] < that.end[i]) {
-                    min[i] = that.start[i];
-                    max[i] = that.end[i];
-                } else {
-                    min[i] = that.end[i];
-                    max[i] = that.start[i];
+        that.getSize = function() {
+            return {
+                min : {
+                    x : Math.min(that.start.x, that.end.x),
+                    y : Math.min(that.start.y, that.end.y),
+                    z : Math.min(that.start.z, that.end.z),
+                }, max : {
+                    x : Math.max(that.start.x, that.end.x),
+                    y : Math.max(that.start.y, that.end.y),
+                    z : Math.max(that.start.z, that.end.z),
                 }
-            }
-
-            return { min : min, max : max };
+            };
         };
 
         function initialize(index, start, commandParsed, relative, inMm) {
@@ -314,7 +310,7 @@ GCodeToGeometry.CurvedLine = (function() {
             return (isInclude(a, 0, angleBezier) === true);
         }
 
-        that.calculateSize = function() {
+        that.getSize = function() {
             //TODO: test it
             var axes = GCodeToGeometry.findAxes(that.crossAxe);
             var cs = {

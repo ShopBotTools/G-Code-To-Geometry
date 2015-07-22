@@ -12,10 +12,11 @@
 GCodeToGeometry.parse = function(code) {
     "use strict";
 
-    function makeResult(gcodeParsed, lines, isComplete, errorMessage) {
+    function makeResult(gcodeParsed, lines, size, isComplete, errorMessage) {
         return {
             gcode : gcodeParsed,
             lines : lines,
+            size : size,
             isComplete : isComplete,
             errorMessage : errorMessage
         };
@@ -53,6 +54,32 @@ GCodeToGeometry.parse = function(code) {
         return tab;
     }
 
+    var totalSize = {
+        min : { x: 0, y : 0, z : 0 },
+        max : { x: 0, y : 0, z : 0 }
+    };
+
+    var tututu = 0;
+
+    function checkTotalSize(totalSize, size) {
+        var keys = ["x", "y", "z"];
+        var i = 0;
+        for(i = keys.length - 1; i >= 0; i--) {
+            if(totalSize.min[keys[i]] > size.min[keys[i]]) {
+                totalSize.min[keys[i]] = size.min[keys[i]];
+            }
+            if(totalSize.max[keys[i]] < size.max[keys[i]]) {
+                totalSize.max[keys[i]] = size.max[keys[i]];
+            }
+        }
+        if(tututu < 5) {
+            console.log(size.min);
+            console.log(size.max);
+            tututu++;
+        }
+
+    }
+
     var i = 0, j = 0;
     var line = {}, res = {};  //RESult
     var start = { x: 0, y : 0, z : 0 };
@@ -81,6 +108,7 @@ GCodeToGeometry.parse = function(code) {
                 line = new GCodeToGeometry.StraightLine(i,
                         start, res, relative, inMm);
                 lines.push(line.returnLine());
+                checkTotalSize(totalSize, line.getSize());
                 start = GCodeToGeometry.copyObject(line.end);
             } else if(res.type === "G2" || res.type === "G3") {
                 line = new GCodeToGeometry.CurvedLine(i, start,
@@ -90,6 +118,7 @@ GCodeToGeometry.parse = function(code) {
                             "for command " + gcode[i] + " (line " + i +")");
                     // break;
                 }
+                checkTotalSize(totalSize, line.getSize());
                 lines.push(line.returnLine());
                 start = GCodeToGeometry.copyObject(line.end);
             } else if(res.type === "G4") {
@@ -126,5 +155,5 @@ GCodeToGeometry.parse = function(code) {
         }
     }
 
-    return makeResult(gcode, lines, true, "");
+    return makeResult(gcode, lines, totalSize, true, "");
 };
