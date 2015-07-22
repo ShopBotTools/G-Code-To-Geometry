@@ -13,7 +13,6 @@
 GCodeToGeometry.StraightLine = (function() {
     "use strict";
 
-    //TODO: should "throw" an error if bad parameters
     function StraightLine(index, start, commandParsed, relative, inMm) {
         var that = this;
 
@@ -304,7 +303,7 @@ GCodeToGeometry.CurvedLine = (function() {
         }
 
         function axeCutArc(reValue, imValue, angleBezier, cs) {
-            //Find the angle in the same orientation that the Bézier's angle
+            //Find the angle in the same orientation than the Bézier's angle
             var a = GCodeToGeometry.findAngleOrientedVectors2(cs,
                     { x : reValue, y : imValue }, that.clockwise === false);
             return (isInclude(a, 0, angleBezier) === true);

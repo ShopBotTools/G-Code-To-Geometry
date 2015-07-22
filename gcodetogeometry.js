@@ -6,7 +6,7 @@
  */
 
 /**
- * TODO: Put explanations.
+ * Function to parse the GCode into a series of lines and curves.
  */
 
 GCodeToGeometry.parse = function(code) {
@@ -80,8 +80,8 @@ GCodeToGeometry.parse = function(code) {
     var relative = false, inMm = false;
     var lines= [];
 
-    if(code  === "") {
-        return makeResult([], [], false, "There is no GCode");
+    if(typeof code !== "string" || code  === "") {
+        return makeResult([], [], false, totalSize, "There is no GCode");
     }
     var gcode = code.split('\n');
 
