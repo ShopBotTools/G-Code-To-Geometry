@@ -311,7 +311,6 @@ GCodeToGeometry.CurvedLine = (function() {
         }
 
         that.getSize = function() {
-            //TODO: test it
             var axes = GCodeToGeometry.findAxes(that.crossAxe);
             var cs = {
                 x : that.start[axes.re] - that.center[axes.re],
@@ -329,15 +328,12 @@ GCodeToGeometry.CurvedLine = (function() {
             if(axeCutArc(0, 1, aBez, cs) === true) {
                 max[axes.im] = that.center[axes.im] + radius;
             }
-
             if(axeCutArc(0, -1, aBez, cs) === true) {
                 min[axes.im] = that.center[axes.im] - radius;
             }
-
             if(axeCutArc(1, 0, aBez, cs) === true) {
                 max[axes.re] = that.center[axes.re] + radius;
             }
-
             if(axeCutArc(-1, 0, aBez, cs) === true) {
                 min[axes.re] = that.center[axes.re] - radius;
             }

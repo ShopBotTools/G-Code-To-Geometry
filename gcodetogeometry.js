@@ -59,8 +59,6 @@ GCodeToGeometry.parse = function(code) {
         max : { x: 0, y : 0, z : 0 }
     };
 
-    var tututu = 0;
-
     function checkTotalSize(totalSize, size) {
         var keys = ["x", "y", "z"];
         var i = 0;
@@ -72,12 +70,6 @@ GCodeToGeometry.parse = function(code) {
                 totalSize.max[keys[i]] = size.max[keys[i]];
             }
         }
-        if(tututu < 5) {
-            console.log(size.min);
-            console.log(size.max);
-            tututu++;
-        }
-
     }
 
     var i = 0, j = 0;
