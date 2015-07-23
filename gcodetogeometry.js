@@ -54,11 +54,6 @@ GCodeToGeometry.parse = function(code) {
         return tab;
     }
 
-    var totalSize = {
-        min : { x: 0, y : 0, z : 0 },
-        max : { x: 0, y : 0, z : 0 }
-    };
-
     function checkTotalSize(totalSize, size) {
         var keys = ["x", "y", "z"];
         var i = 0;
@@ -72,6 +67,10 @@ GCodeToGeometry.parse = function(code) {
         }
     }
 
+    var totalSize = {
+        min : { x: 0, y : 0, z : 0 },
+        max : { x: 0, y : 0, z : 0 }
+    };
     var i = 0, j = 0;
     var line = {}, res = {};  //RESult
     var start = { x: 0, y : 0, z : 0 };

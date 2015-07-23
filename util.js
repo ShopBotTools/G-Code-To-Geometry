@@ -12,11 +12,8 @@
 var GCodeToGeometry = {};
 
 //Global variables
-GCodeToGeometry.STRAIGHT = 0;
-GCodeToGeometry.CURVED = 1;
 GCodeToGeometry.inchToMm = 25.4;
 GCodeToGeometry.mmToInch = 0.03937008;  //Convert a millimeter to an inch
-GCodeToGeometry.inchToVector = 1;  //Convert an inch to the value to put in vectors
 
 //Find the next position according to the x, y and z contained or not by in the
 //command parameters
@@ -86,7 +83,7 @@ GCodeToGeometry.crossProduct2 = function(v1, v2) {
     return v1.x * v2.y - v2.x * v1.y;
 };
 
-GCodeToGeometry.lengthVector = function(v) {
+GCodeToGeometry.lengthVector3 = function(v) {
     return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 };
 

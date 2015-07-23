@@ -5,7 +5,7 @@ will be renamed so be careful if you update for a new version.
 
 ##How to use it:
 1. Download the minified version (if there is one) and include the file. Or
-download all the script and include as in the example.html file.
+download all the scripts and include as in the example.html file.
 2. In your code, you just have to use the function GCodeToGeometry.parse(code).
 
     var result = GCodeToGeometry.parse(myGCode);
@@ -35,7 +35,7 @@ Example:
         max : { x : 10, y : 5, z : 3 }
     }
 
-##Line object
+##Line objects
 There are two types of lines.
 
 ###Straight line
