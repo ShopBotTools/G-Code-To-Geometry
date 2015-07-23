@@ -265,6 +265,7 @@ GCodeToGeometry.CurvedLine = function(index, start, commandParsed, relative,
 
 
         if(angle === 0 || radius === 0) {
+            // console.log(radius);
             return [];
         }
 

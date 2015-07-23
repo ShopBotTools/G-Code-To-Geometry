@@ -102,19 +102,23 @@ GCodeToGeometry.parse = function(code) {
                 checkTotalSize(totalSize, line.getSize());
                 start = GCodeToGeometry.copyObject(line.end);
             } else if(res.type === "G2" || res.type === "G3") {
+                // console.log("==============");
+                // console.log("Start:");
+                // console.log(start);
                 line = new GCodeToGeometry.CurvedLine(i, start,
                         res, relative, inMm, crossAxe);
                 if(line.center === false) {
-                    return makeResult(gcode, lines, false, "Radius too short " +
-                            "for command " + gcode[i] + " (line " + i +")");
-                    // break;
+                    return makeResult(gcode, lines, totalSize, false,
+                            "Impossible to find the center for " + gcode[i] +
+                            " (line " + i +")");
                 }
                 checkTotalSize(totalSize, line.getSize());
                 lines.push(line.returnLine());
+                // console.log("First p0:");
+                // console.log("line:");
+                // console.log(line.returnLine());
+                // console.log("==============");
                 start = GCodeToGeometry.copyObject(line.end);
-            } else if(res.type === "G4") {
-                console.log("Set pause so continue");
-                // continue;  //Add the pause time somewhere?
             } else if(res.type === "G17") {
                 crossAxe = "z";
             } else if(res.type === "G18") {
@@ -124,23 +128,13 @@ GCodeToGeometry.parse = function(code) {
             } else if(res.type === "G20") {
                 //No need to convert start: always in inches
                 inMm = false;
-                console.log("set inches");
             } else if(res.type === "G21") {
                 //No need to convert start: always in inches
                 inMm = true;
-                console.log("set mm");
             } else if(res.type === "G90") {
                 relative = false;
-                console.log("set absolute");
             } else if(res.type === "G91") {
                 relative = true;
-                console.log("set relative");
-            } else if(res.type === "M4") {
-                console.log("set spin on");
-            } else if(res.type === "M8") {
-                console.log("set spin off");
-            } else if(res.type === "M30") {
-                break;
             }
 
         }
