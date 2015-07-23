@@ -265,7 +265,6 @@ GCodeToGeometry.CurvedLine = function(index, start, commandParsed, relative,
 
 
         if(angle === 0 || radius === 0) {
-            // console.log(radius);
             return [];
         }
 
@@ -310,8 +309,8 @@ GCodeToGeometry.CurvedLine = function(index, start, commandParsed, relative,
     //radius is positive or negative
     function findCenter(start, end, commandParsed, clockwise, crossAxe, inMm) {
         var delta = (inMm === false) ? 1 : GCodeToGeometry.mmToInch;
+        var center = { x : start.x, y : start.y, z : start.z };
         if(commandParsed.r === undefined) {
-            var center = { x : start.x, y : start.y, z : start.z };
             if(commandParsed.i !== undefined) {
                 center.x += commandParsed.i * delta;
             }
@@ -321,10 +320,12 @@ GCodeToGeometry.CurvedLine = function(index, start, commandParsed, relative,
             if(commandParsed.k !== undefined) {
                 center.z += commandParsed.k * delta;
             }
-            return center;
-        }
-        return GCodeToGeometry.findCenter(start, end, commandParsed.r * delta,
+        } else {
+        center = GCodeToGeometry.findCenter(start, end, commandParsed.r * delta,
                 clockwise, crossAxe);
+        }
+        center[crossAxe] = start[crossAxe];
+        return center;
     }
 
     // The value is include between the value a and b

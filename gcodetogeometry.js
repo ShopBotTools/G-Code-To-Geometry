@@ -102,9 +102,6 @@ GCodeToGeometry.parse = function(code) {
                 checkTotalSize(totalSize, line.getSize());
                 start = GCodeToGeometry.copyObject(line.end);
             } else if(res.type === "G2" || res.type === "G3") {
-                // console.log("==============");
-                // console.log("Start:");
-                // console.log(start);
                 line = new GCodeToGeometry.CurvedLine(i, start,
                         res, relative, inMm, crossAxe);
                 if(line.center === false) {
@@ -114,17 +111,13 @@ GCodeToGeometry.parse = function(code) {
                 }
                 checkTotalSize(totalSize, line.getSize());
                 lines.push(line.returnLine());
-                // console.log("First p0:");
-                // console.log("line:");
-                // console.log(line.returnLine());
-                // console.log("==============");
                 start = GCodeToGeometry.copyObject(line.end);
             } else if(res.type === "G17") {
                 crossAxe = "z";
             } else if(res.type === "G18") {
                 crossAxe = "y";
             } else if(res.type === "G19") {
-                crossAxe = "z";
+                crossAxe = "x";
             } else if(res.type === "G20") {
                 //No need to convert start: always in inches
                 inMm = false;
