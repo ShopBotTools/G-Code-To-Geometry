@@ -76,7 +76,7 @@ GCodeToGeometry.parse = function(code) {
     var start = { x: 0, y : 0, z : 0 };
     var tabRes = [];
     var crossAxe = "z";
-    var relative = false, inMm = false;
+    var relative = false, inMm = false, parsing = true;
     var lines= [];
 
     if(typeof code !== "string" || code  === "") {
@@ -85,7 +85,8 @@ GCodeToGeometry.parse = function(code) {
     var gcode = code.split('\n');
 
 
-    for(i=0; i < gcode.length; i++) {
+    i = 0;
+    while(i < gcode.length && parsing === true) {
         //Sorry for not being really readable :'(
         tabRes = parseParsedGCode(
             GParser.parse(
@@ -93,7 +94,8 @@ GCodeToGeometry.parse = function(code) {
             )
         );
 
-        for(j = 0; j < tabRes.length; j++) {
+        j = 0;
+        while(j < tabRes.length && parsing === true) {
             res = tabRes[j];
             if(res.type === "G0" || res.type === "G1") {
                 line = new GCodeToGeometry.StraightLine(i,
@@ -128,9 +130,14 @@ GCodeToGeometry.parse = function(code) {
                 relative = false;
             } else if(res.type === "G91") {
                 relative = true;
+            } else if(res.type === "M2") {
+                parsing = false;
             }
 
+            j++;
         }
+
+        i++;
     }
 
     return makeResult(gcode, lines, totalSize, true, "");

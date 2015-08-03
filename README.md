@@ -3,6 +3,20 @@ Parse GCode into geometrical lines and curves.
 This is a work in progress but it should be functionnal. Maybe the variables
 will be renamed so be careful if you update for a new version.
 
+##List of supported commands:
+* G0
+* G1
+* G2
+* G3
+* G17
+* G18
+* G19
+* G20
+* G21
+* G90
+* G91
+* M02
+
 ##How to use it:
 1. Download the minified version (if there is one) and include the file. Or
 download all the scripts and include as in the example.html file.
