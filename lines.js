@@ -248,6 +248,11 @@ GCodeToGeometry.CurvedLine = function(index, start, commandParsed, relative,
             rotAndPlaBez(arcs[i], center, angle, axes.re, axes.im);
         }
 
+        //To be sure the first point is at the start
+        arcs[0].p0.x = that.start.x;
+        arcs[0].p0.y = that.start.y;
+        arcs[0].p0.z = that.start.z;
+
         //To be sure the last point is at the end
         arcs[arcs.length-1].p3.x = that.end.x;
         arcs[arcs.length-1].p3.y = that.end.y;
