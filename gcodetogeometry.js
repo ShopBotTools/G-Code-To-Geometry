@@ -98,13 +98,13 @@ GCodeToGeometry.parse = function(code) {
         while(j < tabRes.length && parsing === true) {
             res = tabRes[j];
             if(res.type === "G0" || res.type === "G1") {
-                line = new GCodeToGeometry.StraightLine(i,
+                line = new GCodeToGeometry.StraightLine(i+1,
                         start, res, relative, inMm);
                 lines.push(line.returnLine());
                 checkTotalSize(totalSize, line.getSize());
                 start = GCodeToGeometry.copyObject(line.end);
             } else if(res.type === "G2" || res.type === "G3") {
-                line = new GCodeToGeometry.CurvedLine(i, start,
+                line = new GCodeToGeometry.CurvedLine(i+1, start,
                         res, relative, inMm, crossAxe);
                 if(line.center === false) {
                     return makeResult(gcode, lines, totalSize, false,
