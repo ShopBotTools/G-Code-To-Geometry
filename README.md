@@ -121,3 +121,4 @@ Here is an example of a GCode correctly parsed:
     G1 Z-0.333 F0.666
     G3 X1.6 R0.8
     G3 X0.4 R0.8
+    G1 Z1
