@@ -146,10 +146,8 @@ GCodeToGeometry.parse = function(code) {
             } else if(res.type === "G19") {
                 crossAxe = "x";
             } else if(res.type === "G20") {
-                //No need to convert start: always in inches
                 inMm = false;
             } else if(res.type === "G21") {
-                //No need to convert start: always in inches
                 inMm = true;
             } else if(res.type === "G90") {
                 relative = false;
