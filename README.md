@@ -30,6 +30,8 @@ The feed rate has to be set at least once before using the commands G0, G1, G2
 or G3, else an error will occur. Once the feed rate has been set, if no feed
 rate is specified, the precedent feed rate specified is used.
 
+The coordinates are assumed to be absolute by default.
+
 ## How to use it:
 1. Download the minified version (if there is one) and include the file. Or
 download all the scripts and include as in the example.html file.
@@ -104,3 +106,18 @@ Example:
             }
         ]
     }
+
+
+## Example
+Here is an example of a GCode correctly parsed:
+
+    (Illerminaty)
+    G1 Z-0.333 F0.666
+    G1 X2
+    G1 X1 Y1.73205
+    G1 X0 Y0
+    G1 Z1
+    G0 X0.4 Y0.57735 F0.911
+    G1 Z-0.333 F0.666
+    G3 X1.6 R0.8
+    G3 X0.4 R0.8
