@@ -40,6 +40,8 @@ GCodeToGeometry.parse = function(code) {
             w1 = parsed.words[i][0];
             w2 = parsed.words[i][1];
             if(w1 === "G" || w1 === "M") {
+                //Make sure multiple commands in one line are interpreted as
+                //multiple commands:
                 if(emptyObj === false) {
                     tab.push(obj);
                     obj = {};
@@ -78,6 +80,7 @@ GCodeToGeometry.parse = function(code) {
     var crossAxe = "z";
     var relative = false, inMm = false, parsing = true;
     var lines= [];
+    var previousFeedrate = 0;
 
     if(typeof code !== "string" || code  === "") {
         return makeResult([], [], false, totalSize, "There is no GCode");
@@ -98,19 +101,41 @@ GCodeToGeometry.parse = function(code) {
         while(j < tabRes.length && parsing === true) {
             res = tabRes[j];
             if(res.type === "G0" || res.type === "G1") {
+                if(previousFeedrate === 0 && res.f === undefined)
+                {
+                    return makeResult(gcode, lines, totalSize, false,
+                            "No feedrate set");
+                }
+                if(res.f === 0) {
+                    return makeResult(gcode, lines, totalSize, false,
+                            "Feedrate cannot be equal to 0 (line " + i +")");
+                }
+
                 line = new GCodeToGeometry.StraightLine(i+1,
-                        start, res, relative, inMm);
-                lines.push(line.returnLine());
+                        start, res, relative, previousFeedrate, inMm);
+                previousFeedrate = line.feedrate;
                 checkTotalSize(totalSize, line.getSize());
+                lines.push(line.returnLine());
                 start = GCodeToGeometry.copyObject(line.end);
             } else if(res.type === "G2" || res.type === "G3") {
+                if(previousFeedrate === 0 && res.f === undefined)
+                {
+                    return makeResult(gcode, lines, totalSize, false,
+                            "No feedrate set");
+                }
+                if(res.f === 0) {
+                    return makeResult(gcode, lines, totalSize, false,
+                            "Feedrate cannot be equal to 0 (line " + i +")");
+                }
+
                 line = new GCodeToGeometry.CurvedLine(i+1, start,
-                        res, relative, inMm, crossAxe);
+                        res, relative, previousFeedrate, inMm, crossAxe);
                 if(line.center === false) {
                     return makeResult(gcode, lines, totalSize, false,
                             "Impossible to find the center for " + gcode[i] +
                             " (line " + i +")");
                 }
+                previousFeedrate = line.feedrate;
                 checkTotalSize(totalSize, line.getSize());
                 lines.push(line.returnLine());
                 start = GCodeToGeometry.copyObject(line.end);

@@ -23,7 +23,8 @@
  * @param {boolean} inMm Describe if the command parsed is in millimeter or inch.
  * @return {object} An instance of the StraightLine class.
  */
-GCodeToGeometry.StraightLine = function(index, start, commandParsed, relative, inMm)
+GCodeToGeometry.StraightLine = function(index, start, commandParsed, relative,
+        previousFeedrate, inMm)
 {
     "use strict";
     var that = this;
@@ -39,7 +40,8 @@ GCodeToGeometry.StraightLine = function(index, start, commandParsed, relative, i
             lineNumber : that.index,
             type : that.word,
             start : that.start,
-            end : that.end
+            end : that.end,
+            feedrate : that.feedrate
         };
     };
 
@@ -62,16 +64,23 @@ GCodeToGeometry.StraightLine = function(index, start, commandParsed, relative, i
         };
     };
 
-    function initialize(index, start, commandParsed, relative, inMm) {
+    function initialize(index, start, commandParsed, relative, previousFeedrate,
+            inMm) {
         that.index = index;
         that.word = commandParsed.type;
         that.start = { x : start.x, y : start.y, z : start.z };
         that.end = GCodeToGeometry.findPosition(start, commandParsed,
                 relative, inMm);
+        if(commandParsed.f === undefined) {
+            that.feedrate = previousFeedrate;
+        } else {
+            that.feedrate = GCodeToGeometry.calculateFeedrate(commandParsed.f,
+                    inMm);
+        }
     }
 
 
-    initialize(index, start, commandParsed, relative, inMm);
+    initialize(index, start, commandParsed, relative, previousFeedrate, inMm);
 };
 
 /**
@@ -90,7 +99,7 @@ GCodeToGeometry.StraightLine = function(index, start, commandParsed, relative, i
  * @return {object} An instance of the StraightLine class.
  */
 GCodeToGeometry.CurvedLine = function(index, start, commandParsed, relative,
-        inMm, crossAxe)
+        previousFeedrate, inMm, crossAxe)
 {
     "use strict";
     var that = this;
@@ -307,7 +316,8 @@ GCodeToGeometry.CurvedLine = function(index, start, commandParsed, relative,
         return {
             lineNumber  : that.index,
             type : that.word,
-            beziers : bez
+            beziers : bez,
+            feedrate : that.feedrate
         };
     };
 
@@ -381,7 +391,8 @@ GCodeToGeometry.CurvedLine = function(index, start, commandParsed, relative,
         return { min : min, max : max };
     };
 
-    function initialize(index, start, commandParsed, relative, inMm, crossAxe) {
+    function initialize(index, start, commandParsed, relative, previousFeedrate,
+            inMm, crossAxe) {
         that.index = index;
         that.word = commandParsed.type;
         that.start = { x : start.x, y : start.y, z : start.z };
@@ -391,7 +402,14 @@ GCodeToGeometry.CurvedLine = function(index, start, commandParsed, relative,
         that.center = findCenter(start, that.end, commandParsed,
                 that.clockwise, crossAxe, inMm);
         that.crossAxe = crossAxe;
+        if(commandParsed.f === undefined) {
+            that.feedrate = previousFeedrate;
+        } else {
+            that.feedrate = GCodeToGeometry.calculateFeedrate(commandParsed.f,
+                    inMm);
+        }
     }
 
-    initialize(index, start, commandParsed, relative, inMm, crossAxe);
+    initialize(index, start, commandParsed, relative, previousFeedrate, inMm,
+            crossAxe);
 };

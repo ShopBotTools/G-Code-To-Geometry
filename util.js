@@ -15,6 +15,12 @@ var GCodeToGeometry = {};
 GCodeToGeometry.inchToMm = 25.4;
 GCodeToGeometry.mmToInch = 0.03937008;  //Convert a millimeter to an inch
 
+//Return the feedrate converted
+GCodeToGeometry.calculateFeedrate = function(feedrate, inMm) {
+    return (inMm === false) ? feedrate : feedrate * GCodeToGeometry.mmToInch;
+};
+
+
 //Find the next position according to the x, y and z contained or not by in the
 //command parameters
 GCodeToGeometry.findPosition = function(start, parameters, relative, inMm) {
