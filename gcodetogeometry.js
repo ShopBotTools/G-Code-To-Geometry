@@ -25,7 +25,7 @@ GCodeToGeometry.parse = function(code) {
     //Returns a string if no command
     function removeCommentsAndSpaces(command) {
         var s = command.split('(')[0].split(';')[0]; //No need to use regex
-        return s.split(' ').join('').split('\t').join('');
+        return s.split(/\s/).join('').trim();
     }
 
     //Parsing the result of GParser.parse
@@ -100,7 +100,7 @@ GCodeToGeometry.parse = function(code) {
         j = 0;
         while(j < tabRes.length && parsing === true) {
             res = tabRes[j];
-            if(res.type === "G0" || res.type === "G1") {
+            if(res.type === "G1") {
                 if(previousFeedrate === 0 && res.f === undefined)
                 {
                     return makeResult(gcode, lines, totalSize, false,
