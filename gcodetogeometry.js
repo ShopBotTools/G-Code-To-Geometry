@@ -100,15 +100,16 @@ GCodeToGeometry.parse = function(code) {
         j = 0;
         while(j < tabRes.length && parsing === true) {
             res = tabRes[j];
-            if(res.type === "G1") {
-                if(previousFeedrate === 0 && res.f === undefined)
-                {
-                    return makeResult(gcode, lines, totalSize, false,
-                            "No feedrate set");
-                }
-                if(res.f === 0) {
-                    return makeResult(gcode, lines, totalSize, false,
-                            "Feedrate cannot be equal to 0 (line " + i +")");
+            if(res.type === "G0" || res.type === "G1") {
+                if(res.type === "G1") {
+                    if(previousFeedrate === 0 && res.f === undefined) {
+                        return makeResult(gcode, lines, totalSize, false,
+                                "No feedrate set");
+                    }
+                    if(res.f === 0) {
+                        return makeResult(gcode, lines, totalSize, false,
+                                "Feedrate cannot be equal to 0 (line " + i +")");
+                    }
                 }
 
                 line = new GCodeToGeometry.StraightLine(i+1,
@@ -118,8 +119,7 @@ GCodeToGeometry.parse = function(code) {
                 lines.push(line.returnLine());
                 start = GCodeToGeometry.copyObject(line.end);
             } else if(res.type === "G2" || res.type === "G3") {
-                if(previousFeedrate === 0 && res.f === undefined)
-                {
+                if(previousFeedrate === 0 && res.f === undefined) {
                     return makeResult(gcode, lines, totalSize, false,
                             "No feedrate set");
                 }
