@@ -104,11 +104,11 @@ GCodeToGeometry.parse = function(code) {
                 if(res.type === "G1") {
                     if(previousFeedrate === 0 && res.f === undefined) {
                         return makeResult(gcode, lines, totalSize, false,
-                                "No feedrate set");
+                                "No feedrate set (line " + (i+1) + ")");
                     }
                     if(res.f === 0) {
                         return makeResult(gcode, lines, totalSize, false,
-                                "Feedrate cannot be equal to 0 (line " + i +")");
+                                "Feedrate cannot be equal to 0 (line " + (i+1) +")");
                     }
                 }
 
@@ -121,11 +121,11 @@ GCodeToGeometry.parse = function(code) {
             } else if(res.type === "G2" || res.type === "G3") {
                 if(previousFeedrate === 0 && res.f === undefined) {
                     return makeResult(gcode, lines, totalSize, false,
-                            "No feedrate set");
+                            "No feedrate set (line " + i + ")");
                 }
                 if(res.f === 0) {
                     return makeResult(gcode, lines, totalSize, false,
-                            "Feedrate cannot be equal to 0 (line " + i +")");
+                            "Feedrate cannot be equal to 0 (line " + (i+1) +")");
                 }
 
                 line = new GCodeToGeometry.CurvedLine(i+1, start,
@@ -133,7 +133,7 @@ GCodeToGeometry.parse = function(code) {
                 if(line.center === false) {
                     return makeResult(gcode, lines, totalSize, false,
                             "Impossible to find the center for " + gcode[i] +
-                            " (line " + i +")");
+                            " (line " + (i+1) +")");
                 }
                 previousFeedrate = line.feedrate;
                 checkTotalSize(totalSize, line.getSize());
