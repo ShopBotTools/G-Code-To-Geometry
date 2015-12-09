@@ -8,18 +8,28 @@ This is a work in progress but it should be functional. Maybe the variables
 will be renamed so be careful if you update for a new version.
 
 ## List of supported commands:
-* G0
-* G1
-* G2
-* G3
-* G17
-* G18
-* G19
-* G20
-* G21
-* G90
-* G91
-* M02
+
+This software supports the following commands with the following parameters
+(which can be optional):
+
+* ``G0 X... Y... Z...``
+* ``G1 X... Y... Z... F...``
+* ``G2 X... Y... Z... F... I... J... K...`` or  ``G2 X... Y... Z... F... R...``
+* ``G3 X... Y... Z... F... I... J... K...`` or  ``G3 X... Y... Z... F... R...``
+* ``G17``
+* ``G18``
+* ``G19``
+* ``G20``
+* ``G21``
+* ``G90``
+* ``G91``
+* ``M02``  (this is the only M command parsed because it stops everything, after
+  this command nothing is parsed)
+
+Note that, if your code is not parsed by this software, that does not
+necessarily means that your code is not correct. GCode has no real standard,
+therefore had to make choices on what is supported or not. This software tries
+to support all the features Shopbot Tools support.
 
 ## Behaviour
 All the values returned by this program are in inches. Also if in the GCode
