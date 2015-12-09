@@ -26,10 +26,16 @@ This software supports the following commands with the following parameters
 * ``M02``  (this is the only M command parsed because it stops everything, after
   this command nothing is parsed)
 
-Note that, if your code is not parsed by this software, that does not
-necessarily means that your code is not correct. GCode has no real standard,
-therefore had to make choices on what is supported or not. This software tries
-to support all the features Shopbot Tools support.
+If a parameter is wrong, it will be parsed. It will maybe be skipped.
+
+Example:
+
+    G0 X1 Y1  Ook (will act as G0 X1 Y1, will have a warning)
+    G2 I1 R2      (will be skipped because cannot have R and I, J or K at)
+                  (the same time. Also, will have an error).
+
+GCode has no real standard, therefore had to make choices on what is supported
+or not. This software tries to support all the features Shopbot Tools support.
 
 For each line, everything written after a ``(`` or ``;`` is considered as
 comment.
