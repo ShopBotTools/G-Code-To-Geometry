@@ -12,18 +12,6 @@
 GCodeToGeometry.parse = function(code) {
     "use strict";
 
-    function makeResult(gcodeParsed, lines, size, isComplete, errorMessage) {
-        //TODO: put an error instead of errorMessage
-        //errorList = [ { line, error }, { line, error }, ... ]
-        return {
-            gcode : gcodeParsed,
-            lines : lines,
-            size : size,
-            isComplete : isComplete,
-            errorMessage : errorMessage
-        };
-    }
-
     //Returns a string if no command
     function removeCommentsAndSpaces(command) {
         var s = command.split('(')[0].split(';')[0]; //No need to use regex
@@ -58,6 +46,28 @@ GCodeToGeometry.parse = function(code) {
         return tab;
     }
 
+    //Checks if a paramater in parameters is not supposed to be there
+    function checkWrongParameter(acceptedParameters, parameters) {
+        var i = 0, j = 0;
+        var accepted = true;
+        console.log(acceptedParameters);
+        console.log(parameters);
+
+        for(j = parameters.length - 1; j >= 0; j--) {
+            for(i = acceptedParameters.length - 1; i >= 0; i--) {
+                accepted = false;
+                if(parameters[j].toUpperCase() === acceptedParameters[i].toUpperCase()) {
+                    accepted = true;
+                    acceptedParameters.splice(i, 1);
+                    break;
+                }
+            }
+            if(accepted === false) {
+                return false;
+            }
+        }
+    }
+
     function checkTotalSize(totalSize, size) {
         var keys = ["x", "y", "z"];
         var i = 0;
@@ -82,6 +92,30 @@ GCodeToGeometry.parse = function(code) {
         return !((c.f === undefined && previousFeedrate === 0) || c.f === 0);
     }
 
+    //TODO: delete this function to change checkFeedrate
+    // Returns true if the command is skipped
+    function errorCheckFeedrate(command, errorList, line, previousFeedrate) {
+        if(checkFeedrate(command, previousFeedrate) === true) {
+            return false;
+        }
+
+        if(command.f === undefined) {
+            errorList.push({
+                line : line,
+                message : "(warning) No feed rate set (the default is used).",
+                isSkipped : false
+            });
+            return false;
+        }
+
+        errorList.push({
+            line : line,
+            message : "(error) Cannot use a null feed rate.",
+            isSkipped : false
+        });
+        return true;
+    }
+
     //Will set the command type if not set
     function setGoodType(parsedCommand, previousMoveCommand) {
         if(parsedCommand.type !== undefined) {
@@ -90,10 +124,68 @@ GCodeToGeometry.parse = function(code) {
         parsedCommand.type = previousMoveCommand;
     }
 
-    // function checkG0(command, errorList) {
-    //     console.log(command);
-    //     console.log(errorList);
-    // }
+    // Returns true if the command is done, false if skipped
+    function checkG0(command, errorList, line) {
+        var acceptedParameters = [ "X", "Y", "Z" ];
+        var parameters = Object.keys(command);
+        parameters.splice(parameters.indexOf("type"), 1);
+
+        if(checkWrongParameter(acceptedParameters, parameters) === false) {
+            errorList.push({
+                line : line,
+                message : "(warning) Some parameters are wrong.",
+                isSkipped : false
+            });
+        }
+        return true;
+    }
+
+    // Returns true if the command is done, false if skipped
+    function checkG1(command, errorList, line, previousFeedrate) {
+        var acceptedParameters = [ "X", "Y", "Z", "F" ];
+        var parameters = Object.keys(command);
+        parameters.splice(parameters.indexOf("type"), 1);
+
+        if(checkWrongParameter(acceptedParameters, parameters) === false) {
+            errorList.push({
+                line : line,
+                message : "(warning) Some parameters are wrong.",
+                isSkipped : false
+            });
+        }
+
+        return errorCheckFeedrate(command, errorList, line, previousFeedrate);
+    }
+
+    // Returns true if the command is done, false if skipped
+    function checkG2G3(command, errorList, line, previousFeedrate) {
+        var acceptedParameters = [ "X", "Y", "Z", "F", "I", "J", "K", "R" ];
+        var parameters = Object.keys(command);
+        parameters.splice(parameters.indexOf("type"), 1);
+        var errorFeedrate = true;
+
+        if(checkWrongParameter(acceptedParameters, parameters) === false) {
+            errorList.push({
+                line : line,
+                message : "(warning) Some parameters are wrong.",
+                isSkipped : false
+            });
+        }
+
+        errorFeedrate = !errorCheckFeedrate(command, errorList, line, previousFeedrate);
+
+        if(command.r !== undefined && (command.i !== undefined ||
+            command.j !== undefined || command.k !== undefined)) {
+            errorList.push({
+                line : line,
+                message : "(error) Cannot use R and I, J or K at the same time.",
+                isSkipped : true
+            });
+            return false;
+        }
+
+        return errorFeedrate;
+    }
 
     var totalSize = {
         min : { x: 0, y : 0, z : 0 },
@@ -108,13 +200,17 @@ GCodeToGeometry.parse = function(code) {
     var lines= [];
     var previousFeedrate = 0;
     var previousMoveCommand = "";
-    var errorMessage = "";
+    var errorList = [];
 
     if(typeof code !== "string" || code  === "") {
-        return makeResult([], [], false, totalSize, "There is no GCode");
+        return {
+            gcode : [],
+            lines : [],
+            size : totalSize,
+            errorList : [ { line : 0, message : "(error) No command." } ]
+        };
     }
     var gcode = code.split('\n');
-
 
     i = 0;
     while(i < gcode.length && parsing === true) {
@@ -131,38 +227,40 @@ GCodeToGeometry.parse = function(code) {
 
             setGoodType(res, previousMoveCommand);
 
-            if(checkFeedrate(res, previousFeedrate) === false) {
-                errorMessage = "";
-                if(res.f === undefined) {
-                    errorMessage = "No feed rate set (line " + (i+1) + ")";
-                } else {
-                    errorMessage = "Feed rate cannot be equal to 0 (line ";
-                    errorMessage += (i+1) +")";
-                }
-                return makeResult(gcode, lines, totalSize, false, errorMessage);
-            }
-
-            if(res.type === "G0" || res.type === "G1") {
-                line = new GCodeToGeometry.StraightLine(i+1,
-                        start, res, relative, previousFeedrate, inMm);
+            if(res.type === "G0" && checkG0(res, errorList, i+1)) {
+                line = new GCodeToGeometry.StraightLine(i+1, start, res,
+                        relative, 0, inMm);
+                previousMoveCommand = res.type;
+                checkTotalSize(totalSize, line.getSize());
+                lines.push(line.returnLine());
+                start = GCodeToGeometry.copyObject(line.end);
+            } else if (res.type === "G1" &&
+                    checkG1(res, errorList, i+1, previousFeedrate) === true)
+            {
+                line = new GCodeToGeometry.StraightLine(i+1, start, res,
+                        relative, previousFeedrate, inMm);
                 previousFeedrate = line.feedrate;
                 previousMoveCommand = res.type;
                 checkTotalSize(totalSize, line.getSize());
                 lines.push(line.returnLine());
                 start = GCodeToGeometry.copyObject(line.end);
-            } else if(res.type === "G2" || res.type === "G3") {
+            } else if((res.type === "G2" || res.type === "G3") &&
+                    checkG2G3(res, errorList, i+1, previousFeedrate)) {
                 line = new GCodeToGeometry.CurvedLine(i+1, start,
                         res, relative, previousFeedrate, inMm, crossAxe);
-                if(line.center === false) {
-                    return makeResult(gcode, lines, totalSize, false,
-                            "Impossible to find the center for " + gcode[i] +
-                            " (line " + (i+1) +")");
+                if(line.center !== false) {
+                    previousFeedrate = line.feedrate;
+                    previousMoveCommand = res.type;
+                    checkTotalSize(totalSize, line.getSize());
+                    lines.push(line.returnLine());
+                    start = GCodeToGeometry.copyObject(line.end);
+                } else {
+                    errorList.push({
+                        line : i + 1,
+                        message : "(error) Impossible to find the center.",
+                        isSkipped : true
+                    });
                 }
-                previousFeedrate = line.feedrate;
-                previousMoveCommand = res.type;
-                checkTotalSize(totalSize, line.getSize());
-                lines.push(line.returnLine());
-                start = GCodeToGeometry.copyObject(line.end);
             } else if(res.type === "G17") {
                 crossAxe = "z";
             } else if(res.type === "G18") {
@@ -187,5 +285,18 @@ GCodeToGeometry.parse = function(code) {
         i++;
     }
 
-    return makeResult(gcode, lines, totalSize, true, "");
+    if(i < gcode.length) {
+        errorList.push({
+            line :i + 1,
+            message : "(warning) The next code is not executed.",
+            isSkipped : false
+        });
+    }
+
+    return {
+        gcode : gcode,
+        lines : lines,
+        size : totalSize,
+        errorList : errorList
+    };
 };
