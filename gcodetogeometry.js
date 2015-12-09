@@ -80,6 +80,14 @@ GCodeToGeometry.parse = function(code) {
         return !((c.f === undefined && previousFeedrate === 0) || c.f === 0);
     }
 
+    //Will set the command type if not set
+    function setGoodType(commandParsed, previousMoveCommand) {
+        if(commandParsed.type !== undefined) {
+            return;
+        }
+        commandParsed.type = previousMoveCommand;
+    }
+
     var totalSize = {
         min : { x: 0, y : 0, z : 0 },
         max : { x: 0, y : 0, z : 0 }
@@ -92,6 +100,7 @@ GCodeToGeometry.parse = function(code) {
     var relative = false, inMm = false, parsing = true;
     var lines= [];
     var previousFeedrate = 0;
+    var previousMoveCommand = "";
     var errorMessage = "";
 
     if(typeof code !== "string" || code  === "") {
@@ -113,6 +122,8 @@ GCodeToGeometry.parse = function(code) {
         while(j < tabRes.length && parsing === true) {
             res = tabRes[j];
 
+            setGoodType(res, previousMoveCommand);
+
             if(checkFeedrate(res, previousFeedrate) === false) {
                 errorMessage = "";
                 if(res.f === undefined) {
@@ -128,6 +139,7 @@ GCodeToGeometry.parse = function(code) {
                 line = new GCodeToGeometry.StraightLine(i+1,
                         start, res, relative, previousFeedrate, inMm);
                 previousFeedrate = line.feedrate;
+                previousMoveCommand = res.type;
                 checkTotalSize(totalSize, line.getSize());
                 lines.push(line.returnLine());
                 start = GCodeToGeometry.copyObject(line.end);
@@ -140,6 +152,7 @@ GCodeToGeometry.parse = function(code) {
                             " (line " + (i+1) +")");
                 }
                 previousFeedrate = line.feedrate;
+                previousMoveCommand = res.type;
                 checkTotalSize(totalSize, line.getSize());
                 lines.push(line.returnLine());
                 start = GCodeToGeometry.copyObject(line.end);
