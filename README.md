@@ -31,6 +31,9 @@ necessarily means that your code is not correct. GCode has no real standard,
 therefore had to make choices on what is supported or not. This software tries
 to support all the features Shopbot Tools support.
 
+For each line, everything written after a ``(`` or ``;`` is considered as
+comment.
+
 ## Behaviour
 All the values returned by this program are in inches. Also if in the GCode
 parsed, no G20 or G21 commands (respectively set the values in inches and in

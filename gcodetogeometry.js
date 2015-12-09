@@ -13,6 +13,8 @@ GCodeToGeometry.parse = function(code) {
     "use strict";
 
     function makeResult(gcodeParsed, lines, size, isComplete, errorMessage) {
+        //TODO: put an error instead of errorMessage
+        //errorList = [ { line, error }, { line, error }, ... ]
         return {
             gcode : gcodeParsed,
             lines : lines,
@@ -71,9 +73,9 @@ GCodeToGeometry.parse = function(code) {
 
     //Returns true if the command is correct about the feed rate (that means
     // that if the command does not accept)
-    function checkFeedrate(commandParsed, previousFeedrate) {
-        var c = commandParsed;
-        if(c.type !== "G1" || c.type !== "G2" || c.type !== "G3") {
+    function checkFeedrate(parsedCommand, previousFeedrate) {
+        var c = parsedCommand;
+        if(c.type !== "G1" && c.type !== "G2" && c.type !== "G3") {
             return true;
         }
 
@@ -81,12 +83,17 @@ GCodeToGeometry.parse = function(code) {
     }
 
     //Will set the command type if not set
-    function setGoodType(commandParsed, previousMoveCommand) {
-        if(commandParsed.type !== undefined) {
+    function setGoodType(parsedCommand, previousMoveCommand) {
+        if(parsedCommand.type !== undefined) {
             return;
         }
-        commandParsed.type = previousMoveCommand;
+        parsedCommand.type = previousMoveCommand;
     }
+
+    // function checkG0(command, errorList) {
+    //     console.log(command);
+    //     console.log(errorList);
+    // }
 
     var totalSize = {
         min : { x: 0, y : 0, z : 0 },

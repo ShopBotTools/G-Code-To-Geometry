@@ -17,13 +17,13 @@
  *
  * @param {number} index The line number where this command appears.
  * @param {Object} start The 3D start point.
- * @param {object} commandParsed The parsed command.
+ * @param {object} parsedCommand The parsed command.
  * @param {boolean} relative Describes if the positionning are relative or
  * absolute.
  * @param {boolean} inMm Describe if the command parsed is in millimeter or inch.
  * @return {object} An instance of the StraightLine class.
  */
-GCodeToGeometry.StraightLine = function(index, start, commandParsed, relative,
+GCodeToGeometry.StraightLine = function(index, start, parsedCommand, relative,
         previousFeedrate, inMm)
 {
     "use strict";
@@ -64,23 +64,23 @@ GCodeToGeometry.StraightLine = function(index, start, commandParsed, relative,
         };
     };
 
-    function initialize(index, start, commandParsed, relative, previousFeedrate,
+    function initialize(index, start, parsedCommand, relative, previousFeedrate,
             inMm) {
         that.index = index;
-        that.word = commandParsed.type;
+        that.word = parsedCommand.type;
         that.start = { x : start.x, y : start.y, z : start.z };
-        that.end = GCodeToGeometry.findPosition(start, commandParsed,
+        that.end = GCodeToGeometry.findPosition(start, parsedCommand,
                 relative, inMm);
-        if(commandParsed.f === undefined) {
+        if(parsedCommand.f === undefined) {
             that.feedrate = previousFeedrate;
         } else {
-            that.feedrate = GCodeToGeometry.calculateFeedrate(commandParsed.f,
+            that.feedrate = GCodeToGeometry.calculateFeedrate(parsedCommand.f,
                     inMm);
         }
     }
 
 
-    initialize(index, start, commandParsed, relative, previousFeedrate, inMm);
+    initialize(index, start, parsedCommand, relative, previousFeedrate, inMm);
 };
 
 /**
@@ -90,7 +90,7 @@ GCodeToGeometry.StraightLine = function(index, start, commandParsed, relative,
  *
  * @param {number} index The line number where this command appears.
  * @param {Object} start The 3D start point.
- * @param {object} commandParsed The parsed command.
+ * @param {object} parsedCommand The parsed command.
  * @param {boolean} relative Describes if the positionning are relative or
  * absolute.
  * @param {boolean} inMm Describe if the command parsed is in millimeter or inch.
@@ -98,7 +98,7 @@ GCodeToGeometry.StraightLine = function(index, start, commandParsed, relative,
  *  the G2 or G3 command operates.
  * @return {object} An instance of the StraightLine class.
  */
-GCodeToGeometry.CurvedLine = function(index, start, commandParsed, relative,
+GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, relative,
         previousFeedrate, inMm, crossAxe)
 {
     "use strict";
@@ -322,21 +322,21 @@ GCodeToGeometry.CurvedLine = function(index, start, commandParsed, relative,
     };
 
     //radius is positive or negative
-    function findCenter(start, end, commandParsed, clockwise, crossAxe, inMm) {
+    function findCenter(start, end, parsedCommand, clockwise, crossAxe, inMm) {
         var delta = (inMm === false) ? 1 : GCodeToGeometry.mmToInch;
         var center = { x : start.x, y : start.y, z : start.z };
-        if(commandParsed.r === undefined) {
-            if(commandParsed.i !== undefined) {
-                center.x += commandParsed.i * delta;
+        if(parsedCommand.r === undefined) {
+            if(parsedCommand.i !== undefined) {
+                center.x += parsedCommand.i * delta;
             }
-            if(commandParsed.j !== undefined) {
-                center.y += commandParsed.j * delta;
+            if(parsedCommand.j !== undefined) {
+                center.y += parsedCommand.j * delta;
             }
-            if(commandParsed.k !== undefined) {
-                center.z += commandParsed.k * delta;
+            if(parsedCommand.k !== undefined) {
+                center.z += parsedCommand.k * delta;
             }
         } else {
-        center = GCodeToGeometry.findCenter(start, end, commandParsed.r * delta,
+        center = GCodeToGeometry.findCenter(start, end, parsedCommand.r * delta,
                 clockwise, crossAxe);
         }
         center[crossAxe] = start[crossAxe];
@@ -391,25 +391,25 @@ GCodeToGeometry.CurvedLine = function(index, start, commandParsed, relative,
         return { min : min, max : max };
     };
 
-    function initialize(index, start, commandParsed, relative, previousFeedrate,
+    function initialize(index, start, parsedCommand, relative, previousFeedrate,
             inMm, crossAxe) {
         that.index = index;
-        that.word = commandParsed.type;
+        that.word = parsedCommand.type;
         that.start = { x : start.x, y : start.y, z : start.z };
-        that.end = GCodeToGeometry.findPosition(start, commandParsed, relative,
+        that.end = GCodeToGeometry.findPosition(start, parsedCommand, relative,
                 inMm);
-        that.clockwise = (commandParsed.type === "G2");
-        that.center = findCenter(start, that.end, commandParsed,
+        that.clockwise = (parsedCommand.type === "G2");
+        that.center = findCenter(start, that.end, parsedCommand,
                 that.clockwise, crossAxe, inMm);
         that.crossAxe = crossAxe;
-        if(commandParsed.f === undefined) {
+        if(parsedCommand.f === undefined) {
             that.feedrate = previousFeedrate;
         } else {
-            that.feedrate = GCodeToGeometry.calculateFeedrate(commandParsed.f,
+            that.feedrate = GCodeToGeometry.calculateFeedrate(parsedCommand.f,
                     inMm);
         }
     }
 
-    initialize(index, start, commandParsed, relative, previousFeedrate, inMm,
+    initialize(index, start, parsedCommand, relative, previousFeedrate, inMm,
             crossAxe);
 };
