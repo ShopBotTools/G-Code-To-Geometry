@@ -267,8 +267,7 @@ GCodeToGeometry.parse = function(code) {
             }
         } else if(type === "G0" && checkG0(command, errorList, lineNumber)) {
             line = new GCodeToGeometry.StraightLine(lineNumber,
-                    settings.position, command, settings.relative, 0,
-                    settings.inMm);
+                    settings.position, command, settings);
             settings.typeMove = type;
             checkTotalSize(totalSize, line.getSize());
             lines.push(line.returnLine());
@@ -277,8 +276,7 @@ GCodeToGeometry.parse = function(code) {
             checkG1(command, errorList, lineNumber, settings.feedrate) === true)
         {
             line = new GCodeToGeometry.StraightLine(lineNumber,
-                    settings.position, command, settings.relative,
-                    settings.feedrate, settings.inMm);
+                    settings.position, command, settings);
             settings.feedrate = line.feedrate;
             settings.typeMove = type;
             checkTotalSize(totalSize, line.getSize());
@@ -287,8 +285,7 @@ GCodeToGeometry.parse = function(code) {
         } else if((type === "G2" || type === "G3") &&
                 checkG2G3(command, errorList, lineNumber, settings.feedrate)) {
             line = new GCodeToGeometry.CurvedLine(lineNumber, settings.position,
-                    command, settings.relative, settings.feedrate,
-                    settings.inMm, settings.crossAxe);
+                    command, settings);
             if(line.center !== false) {
                 settings.feedrate = line.feedrate;
                 settings.typeMove = type;

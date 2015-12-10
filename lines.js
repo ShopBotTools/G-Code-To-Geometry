@@ -18,14 +18,10 @@
  * @param {number} index The line number where this command appears.
  * @param {Object} start The 3D start point.
  * @param {object} parsedCommand The parsed command.
- * @param {boolean} relative Describes if the positionning are relative or
- * absolute.
- * @param {boolean} inMm Describe if the command parsed is in millimeter or inch.
+ * @param {object} settings The modularity settings.
  * @return {object} An instance of the StraightLine class.
  */
-GCodeToGeometry.StraightLine = function(index, start, parsedCommand, relative,
-        previousFeedrate, inMm)
-{
+GCodeToGeometry.StraightLine = function(index, start, parsedCommand, settings) {
     "use strict";
     var that = this;
 
@@ -64,23 +60,23 @@ GCodeToGeometry.StraightLine = function(index, start, parsedCommand, relative,
         };
     };
 
-    function initialize(index, start, parsedCommand, relative, previousFeedrate,
-            inMm) {
+    function initialize(index, start, parsedCommand, settings) {
         that.index = index;
         that.word = parsedCommand.type;
         that.start = { x : start.x, y : start.y, z : start.z };
         that.end = GCodeToGeometry.findPosition(start, parsedCommand,
-                relative, inMm);
-        if(parsedCommand.f === undefined) {
-            that.feedrate = previousFeedrate;
+                settings.relative, settings.inMm);
+        if(parsedCommand.type === "G0") {
+            that.feedrate = 0;
+        } else if(parsedCommand.f === undefined) {
+            that.feedrate = settings.feedrate;
         } else {
             that.feedrate = GCodeToGeometry.calculateFeedrate(parsedCommand.f,
-                    inMm);
+                    settings.inMm);
         }
     }
 
-
-    initialize(index, start, parsedCommand, relative, previousFeedrate, inMm);
+    initialize(index, start, parsedCommand, settings);
 };
 
 /**
@@ -91,16 +87,10 @@ GCodeToGeometry.StraightLine = function(index, start, parsedCommand, relative,
  * @param {number} index The line number where this command appears.
  * @param {Object} start The 3D start point.
  * @param {object} parsedCommand The parsed command.
- * @param {boolean} relative Describes if the positionning are relative or
- * absolute.
- * @param {boolean} inMm Describe if the command parsed is in millimeter or inch.
- * @param {string} crossAxe The axe which is the normal of the plane where
- *  the G2 or G3 command operates.
- * @return {object} An instance of the StraightLine class.
+ * @param {object} settings The modularity settings.
+ * @return {object} An instance of the CurvedLine class.
  */
-GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, relative,
-        previousFeedrate, inMm, crossAxe)
-{
+GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
     "use strict";
     var that = this;
 
@@ -391,25 +381,23 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, relative,
         return { min : min, max : max };
     };
 
-    function initialize(index, start, parsedCommand, relative, previousFeedrate,
-            inMm, crossAxe) {
+    function initialize(index, start, parsedCommand, settings) {
         that.index = index;
         that.word = parsedCommand.type;
         that.start = { x : start.x, y : start.y, z : start.z };
-        that.end = GCodeToGeometry.findPosition(start, parsedCommand, relative,
-                inMm);
+        that.end = GCodeToGeometry.findPosition(start, parsedCommand,
+                settings.relative, settings.inMm);
         that.clockwise = (parsedCommand.type === "G2");
         that.center = findCenter(start, that.end, parsedCommand,
-                that.clockwise, crossAxe, inMm);
-        that.crossAxe = crossAxe;
+                that.clockwise, settings.crossAxe, settings.inMm);
+        that.crossAxe = settings.crossAxe;
         if(parsedCommand.f === undefined) {
-            that.feedrate = previousFeedrate;
+            that.feedrate = settings.feedrate;
         } else {
             that.feedrate = GCodeToGeometry.calculateFeedrate(parsedCommand.f,
-                    inMm);
+                    settings.inMm);
         }
     }
 
-    initialize(index, start, parsedCommand, relative, previousFeedrate, inMm,
-            crossAxe);
+    initialize(index, start, parsedCommand, settings);
 };
