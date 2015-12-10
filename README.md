@@ -41,15 +41,29 @@ For each line, everything written after a ``(`` or ``;`` is considered as
 comment.
 
 ## Behaviour
-All the values returned by this program are in inches. Also if in the GCode
-parsed, no G20 or G21 commands (respectively set the values in inches and in
-millimeters) are present, the value are assumed to be in inches.
 
-The feed rate has to be set at least once before using the commands G0, G1, G2
-or G3, else an error will occur. Once the feed rate has been set, if no feed
-rate is specified, the precedent feed rate specified is used.
+By default, the GCode is considered having this setting:
+* It works on a XY plane (``G17``)
+* The values are considered being in inches (``G20``)
+* The position is absolute (``G90``)
+* The bit is at (0, 0, 0)
+* The feed rate is set to 0
 
-The coordinates are assumed to be absolute by default.
+All the values returned by this program are in inches.
+
+If no feed rate or a negative feed rate has been set for a ``G1``, ``G2`` or
+``G3`` command, it is considered that the machine will use a default value for
+the feed rate. However, if the feed rate is equal to zero, the command will be
+skipped.
+
+## Error and warning system
+
+When parsed, a list of errors is made. When a command has an error, this means
+this command is skipped. When a command has a warning, this means this command
+is executed but the behaviour can be different when executed by a real tool.
+
+The error and warning correspond to the behaviour of the Shopbot Tools'
+machines.
 
 ## How to use it:
 1. Download the minified version (if there is one) and include the file. Or
@@ -61,13 +75,12 @@ download all the scripts and include as in the example.html file.
 The parameter must be the GCode in string.
 
 The function will return an object which contains:
-* **isComplete** : a boolean, true if the whole GCode is parsed, else false
-* **errorMessage** : a string, if an error occurs, contains an error message
 * **gcode** : an array of strings, contains the gcode parsed split (each cell
 contains a line)
 * **size** : an object, contains the maximum and minimal coordinate of
 the bounding box (explained further)
 * **lines** : an array of objects, each cell represent a straight or curved line
+* **errorList** : an array of errors and warnings
 
 **All numerical values are in inches**.
 
@@ -126,6 +139,17 @@ Example:
         ]
     }
 
+## Error object
+This object contains the information about an error or warning for a command at
+a line number. Is considered as error when the command is skipped, else as a
+warning.
+Example:
+
+    error = {
+        isSkipped : false
+        line : 2
+        message : "(warning) No feed rate set (the default is used)."
+    }
 
 ## Example
 Here is an example of a GCode correctly parsed:

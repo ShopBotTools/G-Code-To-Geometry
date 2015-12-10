@@ -6,19 +6,28 @@
  */
 
 /**
- * Function to parse the GCode into a series of lines and curves.
+ * Parses the GCode into a series of lines and curves and checks if errors.
+ * @param  {string}  code  The GCode
+ * @returns  {object}  The parsed GCode
  */
-
 GCodeToGeometry.parse = function(code) {
     "use strict";
 
-    //Returns a string if no command
+    /**
+     * Removes the comments and spaces.
+     * @param  {string}  command  The command to parse
+     * @return  {string}  The command without the commands and spaces.
+     */
     function removeCommentsAndSpaces(command) {
         var s = command.split('(')[0].split(';')[0]; //No need to use regex
         return s.split(/\s/).join('').trim();
     }
 
-    //Parsing the result of GParser.parse
+    /**
+     * Parses the result of GParser.parse.
+     * @param  {array}  Result of GParser.parse
+     * @return  {array}  Array of object.
+     */
     function parseParsedGCode(parsed) {
         var obj = {};
         var i = 0;
@@ -93,41 +102,44 @@ GCodeToGeometry.parse = function(code) {
 
     /**
      * Checks if there is an error due to the feed rate configuration.
-     * @param  {object}  command  The command
-     * @param  {object}  errorList  The error list
-     * @param  {number}  line  Line number
+     * @param  {object}  command           The command (the feed rate can be
+     *                                     changed)
+     * @param  {object}  errorList         The error list
+     * @param  {number}  line              The line number
      * @param  {number}  previousFeedrate  The previous feedrate
      * @return {bool}  True if the command is skipped (error), else false if the
      *                 feedrate is correct or emits only a warning
      */
     function checkErrorFeedrate(command, errorList, line, previousFeedrate) {
         var c = command;
+        var consideredFeedrate;
 
-        if(c.type !== "G1" && c.type !== "G2" && c.type !== "G3") {
+        if(c.type !== undefined && c.type !== "G1" && c.type !== "G2" &&
+                c.type !== "G3") {
             return false;
         }
 
-        if((c.f !== undefined && previousFeedrate > 0) || c.f > 0) {
+        if(c.f !== undefined) {
+            consideredFeedrate = c.f;
+        } else {
+            consideredFeedrate = previousFeedrate;
+        }
+
+        if(consideredFeedrate > 0) {
             return false;
         }
 
-        if(c.f === undefined) {
-            errorList.push({
-                line : line,
-                message : "(warning) No feed rate set (the default is used).",
-                isSkipped : false
-            });
-            return false;
-        }
-
-        if(c.f < 0) {
+        if(consideredFeedrate < 0) {
             errorList.push({
                 line : line,
                 message : "(warning) Cannot use a negative feed rate " +
-                          "(the default is used).",
+                          "(the absolute value is used).",
                 isSkipped : false
             });
+            c.f = Math.abs(consideredFeedrate);
+            return false;
         }
+
         errorList.push({
             line : line,
             message : "(error) Cannot use a null feed rate (skipped).",
@@ -136,7 +148,12 @@ GCodeToGeometry.parse = function(code) {
         return true;
     }
 
-    //Will set the command type if not set
+    /**
+     * Sets the command type if not set and if a previous move command was set.
+     * @param  {object}  parsedCommand        The command (is modified)
+     * @param  {string}  previousMoveCommand  The type of the previous move
+     *                                        command
+     */
     function setGoodType(parsedCommand, previousMoveCommand) {
         if(parsedCommand.type !== undefined) {
             return;
@@ -146,7 +163,13 @@ GCodeToGeometry.parse = function(code) {
         }
     }
 
-    // Returns true if the command is done, false if skipped
+    /**
+     * Checks a G0 command.
+     * @param  {object}  command    The command
+     * @param  {array}   errorList  The error list
+     * @param  {number}  line       The line number
+     * @return  {bool}   Returns true if the command is done, false if skipped
+     */
     function checkG0(command, errorList, line) {
         var acceptedParameters = [ "X", "Y", "Z" ];
         var parameters = Object.keys(command);
@@ -162,7 +185,14 @@ GCodeToGeometry.parse = function(code) {
         return true;
     }
 
-    // Returns true if the command is done, false if skipped
+    /**
+     * Checks a G1 command.
+     * @param  {object}  command           The command
+     * @param  {array}   errorList         The error list
+     * @param  {number}  line              The line number
+     * @param  {number}  previousFeedrate  The previous feedrate
+     * @return  {bool}   Returns true if the command is done, false if skipped
+     */
     function checkG1(command, errorList, line, previousFeedrate) {
         var acceptedParameters = [ "X", "Y", "Z", "F" ];
         var parameters = Object.keys(command);
@@ -179,7 +209,14 @@ GCodeToGeometry.parse = function(code) {
         return !checkErrorFeedrate(command, errorList, line, previousFeedrate);
     }
 
-    // Returns true if the command is done, false if skipped
+    /**
+     * Checks a G2 or G3 command.
+     * @param  {object}  command           The command
+     * @param  {array}   errorList         The error list
+     * @param  {number}  line              The line number
+     * @param  {number}  previousFeedrate  The previous feedrate
+     * @return  {bool}   Returns true if the command is done, false if skipped
+     */
     function checkG2G3(command, errorList, line, previousFeedrate) {
         var acceptedParameters = [ "X", "Y", "Z", "F", "I", "J", "K", "R" ];
         var parameters = Object.keys(command);
@@ -207,23 +244,29 @@ GCodeToGeometry.parse = function(code) {
     }
 
     /**
-     * settings = { feedrate, typeMove, crossAxe, inMm, relative, position }
-     * Returns true if have to continue, else false
+     * Manages a command (check it, create geometrical line, change setting...).
+     * @param  {object}  command    The command
+     * @param  {object}  settings   The modularity settings
+     * @param  {number}  lineNumber The line number
+     * @param  {object}  totalSize  The the whole operation size (modified)
+     * @param  {object}  errorList  The error list
+     * @return {bool}  Returns true if have to continue, else false
      */
-    function manageCommand(command, settings, numberLine, lines, totalSize,
+    function manageCommand(command, settings, lineNumber, lines, totalSize,
             errorList) {
         var line = {};
         var type = "";
         setGoodType(command, settings.typeMove);
         type = command.type;
-        console.log(command.f + "  " + settings.feedrate);
 
         if(type === undefined) {
             if(command.f !== undefined) {
+                checkErrorFeedrate(command, errorList, lineNumber,
+                        settings.feedrate);
                 settings.feedrate = command.f;
             }
-        } else if(type === "G0" && checkG0(command, errorList, numberLine)) {
-            line = new GCodeToGeometry.StraightLine(numberLine,
+        } else if(type === "G0" && checkG0(command, errorList, lineNumber)) {
+            line = new GCodeToGeometry.StraightLine(lineNumber,
                     settings.position, command, settings.relative, 0,
                     settings.inMm);
             settings.typeMove = type;
@@ -231,10 +274,9 @@ GCodeToGeometry.parse = function(code) {
             lines.push(line.returnLine());
             settings.position = GCodeToGeometry.copyObject(line.end);
         } else if (type === "G1" &&
-            checkG1(command, errorList, numberLine, settings.feedrate) === true)
+            checkG1(command, errorList, lineNumber, settings.feedrate) === true)
         {
-            console.log("put g1");
-            line = new GCodeToGeometry.StraightLine(numberLine,
+            line = new GCodeToGeometry.StraightLine(lineNumber,
                     settings.position, command, settings.relative,
                     settings.feedrate, settings.inMm);
             settings.feedrate = line.feedrate;
@@ -243,8 +285,8 @@ GCodeToGeometry.parse = function(code) {
             lines.push(line.returnLine());
             settings.position = GCodeToGeometry.copyObject(line.end);
         } else if((type === "G2" || type === "G3") &&
-                checkG2G3(command, errorList, numberLine, settings.feedrate)) {
-            line = new GCodeToGeometry.CurvedLine(numberLine, settings.position,
+                checkG2G3(command, errorList, lineNumber, settings.feedrate)) {
+            line = new GCodeToGeometry.CurvedLine(lineNumber, settings.position,
                     command, settings.relative, settings.feedrate,
                     settings.inMm, settings.crossAxe);
             if(line.center !== false) {
@@ -255,7 +297,7 @@ GCodeToGeometry.parse = function(code) {
                 settings.position = GCodeToGeometry.copyObject(line.end);
             } else {
                 errorList.push({
-                    line : numberLine,
+                    line : lineNumber,
                     message : "(error) Impossible to find the center.",
                     isSkipped : true
                 });
