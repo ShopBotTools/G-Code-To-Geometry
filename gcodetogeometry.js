@@ -260,13 +260,18 @@ GCodeToGeometry.parse = function(code) {
                         settings.feedrate);
                 settings.feedrate = command.f;
             }
-        } else if(type === "G0" && checkG0(command, errorList, lineNumber)) {
+        } else if(type === "G0" &&
+                checkG0(command, errorList, lineNumber) === true)
+        {
             line = new GCodeToGeometry.StraightLine(lineNumber,
                     settings.position, command, settings);
             settings.typeMove = type;
             checkTotalSize(totalSize, line.getSize());
             lines.push(line.returnLine());
             settings.position = GCodeToGeometry.copyObject(line.end);
+            if(command.f !== undefined) {
+                settings.feedrate = command.f;
+            }
         } else if (type === "G1" &&
             checkG1(command, errorList, lineNumber, settings) === true)
         {
@@ -278,7 +283,7 @@ GCodeToGeometry.parse = function(code) {
             lines.push(line.returnLine());
             settings.position = GCodeToGeometry.copyObject(line.end);
         } else if((type === "G2" || type === "G3") &&
-                checkG2G3(command, errorList, lineNumber, settings))
+                checkG2G3(command, errorList, lineNumber, settings) === true)
         {
             line = new GCodeToGeometry.CurvedLine(lineNumber, settings.position,
                     command, settings);
