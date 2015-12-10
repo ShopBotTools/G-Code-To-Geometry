@@ -240,7 +240,7 @@ GCodeToGeometry.parse = function(code) {
             return false;
         }
 
-        return checkErrorFeedrate(command, errorList, line, previousFeedrate);
+        return !checkErrorFeedrate(command, errorList, line, previousFeedrate);
     }
 
     /**
