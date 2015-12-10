@@ -102,27 +102,20 @@ GCodeToGeometry.parse = function(code) {
 
     /**
      * Checks if there is an error due to the feed rate configuration.
-     * @param  {object}  command           The command (the feed rate can be
-     *                                     changed)
-     * @param  {object}  errorList         The error list
-     * @param  {number}  line              The line number
-     * @param  {number}  previousFeedrate  The previous feedrate
+     * @param  {object}  command    The command (the feed rate can be changed)
+     * @param  {object}  errorList  The error list
+     * @param  {number}  line       The line number
+     * @param  {object}  settings   The modularity settings
      * @return {bool}  True if the command is skipped (error), else false if the
      *                 feedrate is correct or emits only a warning
      */
-    function checkErrorFeedrate(command, errorList, line, previousFeedrate) {
+    function checkErrorFeedrate(command, errorList, line, settings) {
         var c = command;
-        var consideredFeedrate;
+        var consideredFeedrate = (c.f === undefined) ? settings.feedrate : c.f;
 
         if(c.type !== undefined && c.type !== "G1" && c.type !== "G2" &&
                 c.type !== "G3") {
             return false;
-        }
-
-        if(c.f !== undefined) {
-            consideredFeedrate = c.f;
-        } else {
-            consideredFeedrate = previousFeedrate;
         }
 
         if(consideredFeedrate > 0) {
@@ -145,6 +138,8 @@ GCodeToGeometry.parse = function(code) {
             message : "(error) Cannot use a null feed rate (skipped).",
             isSkipped : true
         });
+        settings.feedrate = 0;
+
         return true;
     }
 
@@ -273,7 +268,7 @@ GCodeToGeometry.parse = function(code) {
             lines.push(line.returnLine());
             settings.position = GCodeToGeometry.copyObject(line.end);
         } else if (type === "G1" &&
-            checkG1(command, errorList, lineNumber, settings.feedrate) === true)
+            checkG1(command, errorList, lineNumber, settings) === true)
         {
             line = new GCodeToGeometry.StraightLine(lineNumber,
                     settings.position, command, settings);
@@ -283,7 +278,8 @@ GCodeToGeometry.parse = function(code) {
             lines.push(line.returnLine());
             settings.position = GCodeToGeometry.copyObject(line.end);
         } else if((type === "G2" || type === "G3") &&
-                checkG2G3(command, errorList, lineNumber, settings.feedrate)) {
+                checkG2G3(command, errorList, lineNumber, settings))
+        {
             line = new GCodeToGeometry.CurvedLine(lineNumber, settings.position,
                     command, settings);
             if(line.center !== false) {
