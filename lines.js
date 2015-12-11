@@ -333,7 +333,6 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
             distCenterStart += Math.pow(center.y - start.y, 2);
             distCenterStart += Math.pow(center.z - start.z, 2);
 
-
             distCenterEnd = Math.pow(center.x - end.x, 2);
             distCenterEnd += Math.pow(center.y - end.y, 2);
             distCenterEnd += Math.pow(center.z - end.z, 2);
@@ -344,7 +343,7 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
             }
 
             //Test equality (with four decimal points)
-            if(Math.abs(distCenterStart - distCenterEnd) <= 0.0001) {
+            if(Math.abs(distCenterStart - distCenterEnd) >= 0.0001) {
                 center = false;
             }
         } else {
