@@ -315,6 +315,8 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
     function findCenter(start, end, parsedCommand, clockwise, crossAxe, inMm) {
         var delta = (inMm === false) ? 1 : GCodeToGeometry.mmToInch;
         var center = { x : start.x, y : start.y, z : start.z };
+        var distCenterStart, distCenterEnd;
+
         if(parsedCommand.r === undefined) {
             if(parsedCommand.i !== undefined) {
                 center.x += parsedCommand.i * delta;
@@ -325,9 +327,29 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
             if(parsedCommand.k !== undefined) {
                 center.z += parsedCommand.k * delta;
             }
+
+            //Check if not impossible
+            distCenterStart = Math.pow(center.x - start.x, 2);
+            distCenterStart += Math.pow(center.y - start.y, 2);
+            distCenterStart += Math.pow(center.z - start.z, 2);
+
+
+            distCenterEnd = Math.pow(center.x - end.x, 2);
+            distCenterEnd += Math.pow(center.y - end.y, 2);
+            distCenterEnd += Math.pow(center.z - end.z, 2);
+
+            //Test if equal to zero (with four decimal points)
+            if(distCenterStart < 0.0001 || distCenterEnd < 0.0001) {
+                center = false;
+            }
+
+            //Test equality (with four decimal points)
+            if(Math.abs(distCenterStart - distCenterEnd) <= 0.0001) {
+                center = false;
+            }
         } else {
-        center = GCodeToGeometry.findCenter(start, end, parsedCommand.r * delta,
-                clockwise, crossAxe);
+            center = GCodeToGeometry.findCenter(start, end,
+                    parsedCommand.r * delta, clockwise, crossAxe);
         }
         center[crossAxe] = start[crossAxe];
         return center;

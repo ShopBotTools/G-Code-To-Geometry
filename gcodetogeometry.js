@@ -225,6 +225,16 @@ GCodeToGeometry.parse = function(code) {
             });
         }
 
+        if(command.r === undefined && command.i === undefined &&
+                command.j === undefined && command.k === undefined) {
+            errorList.push({
+                line : line,
+                message : "(error) No parameter R, I, J or K.",
+                isSkipped : true
+            });
+            return false;
+        }
+
         if(command.r !== undefined && (command.i !== undefined ||
             command.j !== undefined || command.k !== undefined)) {
             errorList.push({
@@ -251,6 +261,12 @@ GCodeToGeometry.parse = function(code) {
             errorList) {
         var line = {};
         var type = "";
+
+        //Empty line
+        if(command.type === undefined && Object.keys(command).length === 0) {
+            return true;
+        }
+
         setGoodType(command, settings.typeMove);
         type = command.type;
 
@@ -296,7 +312,7 @@ GCodeToGeometry.parse = function(code) {
             } else {
                 errorList.push({
                     line : lineNumber,
-                    message : "(error) Impossible to find the center.",
+                    message : "(error) Physically impossible to do with those values.",
                     isSkipped : true
                 });
             }
