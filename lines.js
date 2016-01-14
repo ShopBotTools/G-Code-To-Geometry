@@ -154,7 +154,7 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
             GCodeToGeometry.swapObjects(curve.p1, curve.p2);
         }
 
-        //NOTE: not sure for the height, maybe this is better:
+        //NOTE: maybe this is better:
         // b = p*alpha*(r - ax)*(3*r -ax)/(ay*(4*r - ax)*Math.tan(alpha))
         //Set the good cross axe and transform into a helical Bézier curve
         height = pitch / 3;
@@ -307,8 +307,6 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
         var bez90 = {};
         var bezier = [];
         var pitch = 0;
-        // var pAngle = 0; //Pitch of the arcs
-        // var absAngle = Math.abs(angle);
         var halfPI = 1.570796326794897;
         var sign = (that.clockwise === true) ? -1 : 1;
         var rotAngle = sign * Math.PI * 2;
@@ -334,15 +332,15 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
             center[that.crossAxe] += pitch;
         }
 
-        // return bezier;
         return getFullBezier(4, bez90, 0, bez90, pitch);
     }
 
     that.returnLine = function() {
         var bez = [];
+        var axes = GCodeToGeometry.findAxes(that.crossAxe);
 
-        if(that.start.x === that.end.x && that.start.y === that.end.y &&
-                that.start.z === that.end.z) {
+        if(that.start[axes.re] === that.end[axes.re] &&
+                that.start[axes.im] === that.end[axes.im]) {
             bez = circleToBezier();
         } else {
             bez = arcToBezier();
@@ -365,6 +363,7 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
         var delta = (inMm === false) ? 1 : GCodeToGeometry.mmToInch;
         var center = { x : start.x, y : start.y, z : start.z };
         var distCenterStart, distCenterEnd;
+        var axes = GCodeToGeometry.findAxes(crossAxe);
 
         if(parsedCommand.r === undefined) {
             if(parsedCommand.i !== undefined) {
@@ -378,13 +377,11 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
             }
 
             //Check if not impossible
-            distCenterStart = Math.pow(center.x - start.x, 2);
-            distCenterStart += Math.pow(center.y - start.y, 2);
-            distCenterStart += Math.pow(center.z - start.z, 2);
+            distCenterStart = Math.pow(center[axes.re] - start[axes.re], 2);
+            distCenterStart += Math.pow(center[axes.im] - start[axes.im], 2);
 
-            distCenterEnd = Math.pow(center.x - end.x, 2);
-            distCenterEnd += Math.pow(center.y - end.y, 2);
-            distCenterEnd += Math.pow(center.z - end.z, 2);
+            distCenterEnd = Math.pow(center[axes.re] - end[axes.re], 2);
+            distCenterEnd += Math.pow(center[axes.im] - end[axes.im], 2);
 
             //Test if equal to zero (with four decimal points)
             if(distCenterStart < 0.0001 || distCenterEnd < 0.0001) {
