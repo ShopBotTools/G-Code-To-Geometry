@@ -426,9 +426,6 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
         var radius = getBezierRadius(), aBez = getBezierAngle();
         var min = { x : 0 , y : 0, z : 0 }, max = { x : 0 , y : 0, z : 0 };
 
-        console.log(that.start[axes.re] + " === " + that.end[axes.re] +" && "+
-                                that.start[axes.im] + " === " + that.end[axes.im]);
-
         // Is circle
         if(that.start[axes.re] === that.end[axes.re] &&
                 that.start[axes.im] === that.end[axes.im]) {
