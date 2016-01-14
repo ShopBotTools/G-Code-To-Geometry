@@ -94,6 +94,7 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
     "use strict";
     var that = this;
 
+    // Will give 0 if start and end are the same
     function getBezierAngle() {
         var axes = GCodeToGeometry.findAxes(that.crossAxe);
         var cs = { x : that.start[axes.re] - that.center[axes.re],
@@ -116,7 +117,7 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
     //angle in radian included in [0; pi/2]
     //radius > 0
     //From Richard A DeVeneza's work
-    function simCubBezInt(angle, radius) {
+    function cubBez2DInt(angle, radius) {
         var p0 = {}, p1 = {}, p2 ={}, p3 = {};
         angle = Math.abs(angle);
         if(angle === Math.PI / 2) {
@@ -141,11 +142,11 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
         return { p0 : p0, p1 : p1, p2 : p2, p3 : p3 };
     }
 
-    //Transform a simple cubic Bézier's curve clockwise on XY plane
+    //Transform a 2D cubic Bézier's curve clockwise on XY plane
     // to a Bézier's curve in 3D with the right crossAxe and clock direction
     // clockwise is bool
     // pitch can be positive or negative
-    function simCubBezTo3D(curve, clockwise, pitch, crossAxe) {
+    function cubBez2DTo3D(curve, clockwise, pitch, crossAxe) {
         var height = 0;  //height position for p1, p2 and p3
 
         if(clockwise === false) {
@@ -264,9 +265,9 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
         var num90 = 0, numSmall = 1;  //Number arc = pi/2 and arc < pi/2
         var bez90 = {}, bezSmall = {};
         var p90 = 0, pLittle = 0, pAngle = 0; //Pitch of the arcs
-        var angle = getBezierAngle(), radius = getBezierRadius();
+        var angle = getBezierAngle();
+        var radius = getBezierRadius();
         var absAngle = Math.abs(angle), halfPI = 1.570796326794897;
-
 
         if(angle === 0 || radius === 0) {
             return [];
@@ -286,23 +287,71 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
 
         //Find helical Bézier's curves
         if(num90 > 0) {
-            bez90 = simCubBezInt(halfPI, radius);
-            simCubBezTo3D(bez90, (angle < 0), p90, that.crossAxe);
+            bez90 = cubBez2DInt(halfPI, radius);
+            cubBez2DTo3D(bez90, (angle < 0), p90, that.crossAxe);
         }
         if(numSmall > 0) {
             angle = absAngle - num90 * halfPI;
             if(that.clockwise === true) {
                 angle = -angle;
             }
-            bezSmall = simCubBezInt(angle, radius);
-            simCubBezTo3D(bezSmall, (angle < 0), pLittle, that.crossAxe);
+            bezSmall = cubBez2DInt(angle, radius);
+            cubBez2DTo3D(bezSmall, (angle < 0), pLittle, that.crossAxe);
         }
 
         return getFullBezier(num90, bez90, numSmall, bezSmall, p90);
     }
 
+    //Cannot use arcToBezier because of calculus of oriented angle
+    function circleToBezier() {
+        var bez90 = {};
+        var bezier = [];
+        var pitch = 0;
+        // var pAngle = 0; //Pitch of the arcs
+        // var absAngle = Math.abs(angle);
+        var halfPI = 1.570796326794897;
+        var sign = (that.clockwise === true) ? -1 : 1;
+        var rotAngle = sign * Math.PI * 2;
+        var radius = getBezierRadius();
+        var i = 0;
+        var center = GCodeToGeometry.copyObject(that.center);
+        var axes = GCodeToGeometry.findAxes(that.crossAxe);
+
+        if(radius === 0) {
+            return [];
+        }
+
+        //We cannot just make a full circle without caring of the start and
+        //end point. Therefore, we need to use the rotation
+        pitch = (that.end[that.crossAxe] - that.start[that.crossAxe]) / 4;
+        bez90 = cubBez2DInt(halfPI, radius);
+        cubBez2DTo3D(bez90, that.clockwise, pitch, that.crossAxe);
+
+        for(i = 0; i < 4; i++) {
+            bezier.push(GCodeToGeometry.copyObject(bez90));
+            rotAndPlaBez(bezier[i], center, rotAngle, axes.re, axes.im);
+            rotAngle += halfPI * sign;
+            center[that.crossAxe] += pitch;
+        }
+
+        // return bezier;
+        return getFullBezier(4, bez90, 0, bez90, pitch);
+    }
+
     that.returnLine = function() {
-        var bez = arcToBezier();
+        var bez = [];
+
+        if(that.start.x === that.end.x && that.start.y === that.end.y &&
+                that.start.z === that.end.z) {
+            bez = circleToBezier();
+        } else {
+            bez = arcToBezier();
+        }
+
+        if(bez.length === 0) {
+            return false;
+        }
+
         return {
             lineNumber  : that.index,
             type : that.word,
@@ -342,7 +391,7 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
                 center = false;
             }
 
-            //Test equality (with four decimal points)
+            //Test inequality (with four decimal points)
             if(Math.abs(distCenterStart - distCenterEnd) >= 0.0001) {
                 center = false;
             }

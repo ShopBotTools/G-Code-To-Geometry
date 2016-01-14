@@ -304,10 +304,19 @@ GCodeToGeometry.parse = function(code) {
             line = new GCodeToGeometry.CurvedLine(lineNumber, settings.position,
                     command, settings);
             if(line.center !== false) {
+                var temp = line.returnLine();
+                if(temp === false) {
+                    errorList.push({
+                        line : lineNumber,
+                        message : "(error) Impossible to create arc.",
+                        isSkipped : true
+                    });
+                    return true;
+                }
                 settings.feedrate = line.feedrate;
                 settings.typeMove = type;
                 checkTotalSize(totalSize, line.getSize());
-                lines.push(line.returnLine());
+                lines.push(temp);
                 settings.position = GCodeToGeometry.copyObject(line.end);
             } else {
                 errorList.push({
