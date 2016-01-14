@@ -425,6 +425,22 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
         };
         var radius = getBezierRadius(), aBez = getBezierAngle();
         var min = { x : 0 , y : 0, z : 0 }, max = { x : 0 , y : 0, z : 0 };
+
+        console.log(that.start[axes.re] + " === " + that.end[axes.re] +" && "+
+                                that.start[axes.im] + " === " + that.end[axes.im]);
+
+        // Is circle
+        if(that.start[axes.re] === that.end[axes.re] &&
+                that.start[axes.im] === that.end[axes.im]) {
+            min[axes.re] = that.center[axes.re] - radius;
+            min[axes.im] = that.center[axes.im] - radius;
+            min[axes.cr] = Math.min(that.start[axes.cr], that.end[axes.cr]);
+            max[axes.re] = that.center[axes.re] + radius;
+            max[axes.im] = that.center[axes.im] + radius;
+            max[axes.cr] = Math.max(that.start[axes.cr], that.end[axes.cr]);
+            return { min : min, max : max };
+        }
+
         min.x = Math.min(that.start.x, that.end.x);
         min.y = Math.min(that.start.y, that.end.y);
         min.z = Math.min(that.start.z, that.end.z);
