@@ -13,6 +13,9 @@
 GCodeToGeometry.parse = function(code) {
     "use strict";
 
+    var unitIsSet = false;
+    var setInInch = true;
+
     /**
      * Removes the comments and spaces.
      * @param  {string}  command  The command to parse
@@ -333,8 +336,16 @@ GCodeToGeometry.parse = function(code) {
             settings.crossAxe = "x";
         } else if(type === "G20") {
             settings.inMm = false;
+            if(unitIsSet === false) {
+                setInInch = true;
+                unitIsSet = true;
+            }
         } else if(type === "G21") {
             settings.inMm = true;
+            if(unitIsSet === false) {
+                setInInch = false;
+                unitIsSet = true;
+            }
         } else if(type === "G90") {
             settings.relative = false;
         } else if(type === "G91") {
@@ -370,6 +381,7 @@ GCodeToGeometry.parse = function(code) {
             gcode : [],
             lines : [],
             size : totalSize,
+            displayInInch : setInInch,
             errorList : [ { line : 0, message : "(error) No command." } ]
         };
     }
@@ -405,6 +417,7 @@ GCodeToGeometry.parse = function(code) {
         gcode : gcode,
         lines : lines,
         size : totalSize,
+        displayInInch : setInInch,
         errorList : errorList
     };
 };

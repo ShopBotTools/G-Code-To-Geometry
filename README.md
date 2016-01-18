@@ -81,6 +81,8 @@ contains a line)
 the bounding box (explained further)
 * **lines** : an array of objects, each cell represent a straight or curved line
 * **errorList** : an array of errors and warnings
+* **displayInInch** : indicate if the values should be displayed in inches (else
+in millimeters)
 
 **All numerical values are in inches**.
 
