@@ -385,12 +385,12 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
 
             //Test if equal to zero (with four decimal points)
             if(distCenterStart < 0.0001 || distCenterEnd < 0.0001) {
-                center = false;
+                return false;
             }
 
             //Test inequality (with four decimal points)
             if(Math.abs(distCenterStart - distCenterEnd) >= 0.0001) {
-                center = false;
+                return false;
             }
         } else {
             center = GCodeToGeometry.findCenter(start, end,
