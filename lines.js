@@ -360,7 +360,7 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
 
     //radius is positive or negative
     function findCenter(start, end, parsedCommand, clockwise, crossAxe, inMm) {
-        var delta = (inMm === false) ? 1 : GCodeToGeometry.mmToInch;
+        var delta = (inMm === false) ? 1 : GCodeToGeometry.MILLIMETER_TO_INCH;
         var center = { x : start.x, y : start.y, z : start.z };
         var distCenterStart, distCenterEnd;
         var axes = GCodeToGeometry.findAxes(crossAxe);

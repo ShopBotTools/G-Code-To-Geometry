@@ -12,12 +12,12 @@
 var GCodeToGeometry = {};
 
 //Global variables
-GCodeToGeometry.inchToMm = 25.4;
-GCodeToGeometry.mmToInch = 0.03937008;  //Convert a millimeter to an inch
+GCodeToGeometry.INCH_TO_MILLIMETER = 25.4;
+GCodeToGeometry.MILLIMETER_TO_INCH = 0.03937008;  //Convert a millimeter to an inch
 
 //Return the feedrate converted
 GCodeToGeometry.calculateFeedrate = function(feedrate, inMm) {
-    return (inMm === false) ? feedrate : feedrate * GCodeToGeometry.mmToInch;
+    return (inMm === false) ? feedrate : feedrate * GCodeToGeometry.MILLIMETER_TO_INCH;
 };
 
 
@@ -25,7 +25,7 @@ GCodeToGeometry.calculateFeedrate = function(feedrate, inMm) {
 //command parameters
 GCodeToGeometry.findPosition = function(start, parameters, relative, inMm) {
     var pos = { x : start.x, y : start.y, z : start.z };
-    var d = (inMm === false) ? 1 : GCodeToGeometry.mmToInch;
+    var d = (inMm === false) ? 1 : GCodeToGeometry.MILLIMETER_TO_INCH;
     if(relative === true) {
         if(parameters.x !== undefined) { pos.x += parameters.x * d; }
         if(parameters.y !== undefined) { pos.y += parameters.y * d; }
