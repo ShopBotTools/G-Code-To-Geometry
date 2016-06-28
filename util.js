@@ -13,13 +13,29 @@ var GCodeToGeometry = {};
 
 //Global variables
 GCodeToGeometry.INCH_TO_MILLIMETER = 25.4;
-GCodeToGeometry.MILLIMETER_TO_INCH = 0.03937008;  //Convert a millimeter to an inch
+GCodeToGeometry.MILLIMETER_TO_INCH = 0.03937008;
+GCodeToGeometry.FLOAT_PRECISION = 0.001;  // Precision for comparing floats
 
 //Return the feedrate converted
 GCodeToGeometry.calculateFeedrate = function(feedrate, inMm) {
     return (inMm === false) ? feedrate : feedrate * GCodeToGeometry.MILLIMETER_TO_INCH;
 };
 
+/**
+ * Checks if two numbers are nearly equal. This function is used to avoid
+ * to have too much precision when checking values between floating-point
+ * numbers.
+ *
+ * @param {number} a Number A.
+ * @param {number} b Number B.
+ * @param {number} precision (optionnal) The precision of the comparaison, by
+ * default the value is GCodeToGeometry.FLOAT_PRECISION.
+ * @return {boolean} True if the two value are nearly equal.
+ */
+GCodeToGeometry.nearlyEqual = function(a, b, precision) {
+    var p = (precision === undefined) ? GCodeToGeometry.FLOAT_PRECISION : precision;
+    return Math.abs(b - a) <= p;
+};
 
 //Find the next position according to the x, y and z contained or not by in the
 //command parameters

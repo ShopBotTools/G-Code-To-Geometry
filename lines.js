@@ -383,15 +383,12 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
             distCenterEnd = Math.pow(center[axes.re] - end[axes.re], 2);
             distCenterEnd += Math.pow(center[axes.im] - end[axes.im], 2);
 
-            //Test if equal to zero (with four decimal points)
-            if(distCenterStart < 0.0001 || distCenterEnd < 0.001) {
+            if(GCodeToGeometry.nearlyEqual(distCenterStart, 0) === true ||
+                GCodeToGeometry.nearlyEqual(distCenterEnd, 0) === true) {
                 return false;
             }
 
-            //Test inequality (with four decimal points)
-            if(Math.abs(distCenterStart - distCenterEnd) >= 0.001) {
-                console.log(distCenterStart);
-                console.log(distCenterEnd);
+            if(GCodeToGeometry.nearlyEqual(distCenterStart, distCenterEnd) === false) {
                 return false;
             }
         } else {
