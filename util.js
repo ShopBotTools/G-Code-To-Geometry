@@ -37,8 +37,16 @@ GCodeToGeometry.nearlyEqual = function(a, b, precision) {
     return Math.abs(b - a) <= p;
 };
 
-//Find the next position according to the x, y and z contained or not by in the
-//command parameters
+/**
+ * Finds the next position according to the x, y and z contained or not in the
+ * command parameters.
+ *
+ * @param {object} start The 3D start point.
+ * @param {object} parameters The command parameters.
+ * @param {boolean} relative If the point in the parameters is a relative point.
+ * @param {boolean} inMm If the values are in inches.
+ * @return {object The point.
+*/
 GCodeToGeometry.findPosition = function(start, parameters, relative, inMm) {
     var pos = { x : start.x, y : start.y, z : start.z };
     var d = (inMm === false) ? 1 : GCodeToGeometry.MILLIMETER_TO_INCH;
@@ -55,7 +63,13 @@ GCodeToGeometry.findPosition = function(start, parameters, relative, inMm) {
     return pos;
 };
 
-//It has to be the same objects, too bad if it's not
+/**
+ * Swaps two objects. It has to be the same objects, too bad if it's not.
+ *
+ * @param {object} obj1 The first object.
+ * @param {object} obj2 The second object.
+ * @param {boolean} inMm If the values are in inches.
+*/
 GCodeToGeometry.swapObjects = function(obj1, obj2) {
     var keys = Object.keys(obj1);
     var i = 0;
@@ -72,7 +86,13 @@ GCodeToGeometry.swapObjects = function(obj1, obj2) {
     }
 };
 
-//Return the copy of the object
+
+/**
+ * Returns the copy of the object.
+ *
+ * @param {object} object The object.
+ * @return {object} The copy of the object.
+*/
 GCodeToGeometry.copyObject = function(object) {
     var keys = Object.keys(object);
     var i = 0;
@@ -87,6 +107,12 @@ GCodeToGeometry.copyObject = function(object) {
     return copy;
 };
 
+/**
+ * Moves the point according to the vector.
+ *
+ * @param {object} point The point to move.
+ * @param {object} vector The vector.
+ */
 GCodeToGeometry.movePoint = function(point, vector) {
     var keys = Object.keys(vector);
     var i = 0;
@@ -97,22 +123,46 @@ GCodeToGeometry.movePoint = function(point, vector) {
     }
 };
 
+/**
+ * Does a 2D dot product.
+ *
+ * @param {object} v1 The first vector.
+ * @param {object} v2 The second vector.
+ * @return {number} The result.
+ */
 GCodeToGeometry.dotProduct2 = function(v1, v2) {
     return v1.x * v2.x + v1.y * v2.y;
 };
 
+/**
+ * Does a 2D cross product.
+ *
+ * @param {object} v1 The first vector.
+ * @param {object} v2 The second vector.
+ * @return {number} The result on the Z axe.
+ */
 GCodeToGeometry.crossProduct2 = function(v1, v2) {
     return v1.x * v2.y - v2.x * v1.y;
 };
 
+/**
+ * Calculates the length of a 3D vector.
+ * @param {object} v The vector.
+ * @return {number} The vector length.
+ */
 GCodeToGeometry.lengthVector3 = function(v) {
     return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 };
 
-//Returns object of 3 axes:
-// re is the axes for REal numbers
-// im for the IMaginary numbers
-// cr for the CRoss axe
+/**
+ * Returns object of 3 axes:
+ *  re is the axes for REal numbers
+ *  im for the IMaginary numbers
+ *  cr for the CRoss axe
+ * @param {string} crossAxe The name of the axe given by the cross product of
+ * the vectors defining the plane.
+ * @return {object} The object defining the real, imaginary and cross axe.
+ */
 GCodeToGeometry.findAxes = function(crossAxe) {
     if(crossAxe.toLowerCase() === "x") {
         return { re : "y", im : "z", cr : "x"};
@@ -123,11 +173,18 @@ GCodeToGeometry.findAxes = function(crossAxe) {
     return { re : "x", im : "y", cr : "z"};
 };
 
-//Do a rotation and scale of point according to center and store
-// the result in newPoint. re and im for axes Real and Imaginary
-// angle is in radian
-// Copy the value of point before doing calculus so point and newPoint
-// can be the same object
+/**
+ * Does a rotation and scale of point according to center. Stores the result in
+ * newPoint.
+ *
+ * @param {object} center The center of the rotation and scale.
+ * @param {object} point The point to modify.
+ * @param {object} newPoint The point storying the result.
+ * @param {number} angle The angle in radians.
+ * @param {number} length The scale ratio.
+ * @param {string} re The real axe.
+ * @param {string} im The imaginary axe.
+ */
 GCodeToGeometry.scaleAndRotation = function(center, point, newPoint, angle, length, re, im) {
     var c = center, p = point, nP = newPoint;
     var l = length, cA = Math.cos(angle), sA = Math.sin(angle);
@@ -137,29 +194,39 @@ GCodeToGeometry.scaleAndRotation = function(center, point, newPoint, angle, leng
     nP[im] = l * ((pIm - cIm) * cA + (pRe - cRe) * sA) + cIm;
 };
 
-//Returns the signed angle in radian in 2D (between -PI and PI)
+/**
+ * Returns the signed angle in radian in 2D (between -PI and PI).
+ *
+ * @param {object} v1 The first vector.
+ * @param {object} v2 The second vector.
+ * @return {number} The angle in radian.
+ */
 GCodeToGeometry.findAngleVectors2 = function(v1, v2) {
-    var cross = GCodeToGeometry.crossProduct2(v1, v2);
+    var sign = (GCodeToGeometry.crossProduct2(v1, v2) < 0) ? -1 : 1;
     var dot = GCodeToGeometry.dotProduct2(v1, v2);
     var lV1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
     var lV2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
+
     if(lV1 === 0 || lV2 === 0) {
         return 0;
     }
-    if(cross === 0) {
-        cross = 1;
-    }
-    if(cross < 0) {
-        return -Math.acos(dot / (lV1 * lV2));  //For the sign
-    }
-    return Math.acos(dot / (lV1 * lV2));  //For the sign
+
+    return sign * Math.acos(dot / (lV1 * lV2));
 };
 
+/**
+ * Returns the signed angle in radian in 2D (between -2PI and 2PI).
+ *
+ * @param {object} v1 The first vector.
+ * @param {object} v2 The second vector.
+ * @param {boolean} positive If the oriented angle should go counter-clockwise.
+ * @return {number} The angle in radian.
+ */
 GCodeToGeometry.findAngleOrientedVectors2 = function(v1, v2, positive) {
     var angle =  GCodeToGeometry.findAngleVectors2(v1, v2);
 
     if(positive === false && angle > 0) {
-        return -(Math.PI * 2 - angle);
+        return angle - Math.PI * 2;
     }
     if(positive === true && angle < 0) {
         return Math.PI * 2 + angle;
