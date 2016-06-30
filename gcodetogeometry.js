@@ -170,7 +170,7 @@ GCodeToGeometry.parse = function(code) {
      * @param {boolean} relative If the point in the parameters is a relative
      * point.
      * @param {boolean} inMm If the values are in inches.
-     * @return {object The point.
+     * @return {object} The point.
     */
     function findPosition (start, parameters, relative, inMm) {
         var pos = { x : start.x, y : start.y, z : start.z };
@@ -278,8 +278,49 @@ GCodeToGeometry.parse = function(code) {
         return !checkErrorFeedrate(command, errorList, line, previousFeedrate);
     }
 
-    //TODO: manageStraightLine function
-    //manageCurvedLine function
+    function manageG0G1(settings, command, totalSize, lines, lineNumber) {
+        var nextPosition = findPosition(settings.position, command,
+            settings.relative, settings.inMm);
+        var line = new GCodeToGeometry.StraightLine(lineNumber,
+            settings.position, nextPosition, command, settings);
+        settings.typeMove = command.type;
+        checkTotalSize(totalSize, line.getSize());
+        lines.push(line.returnLine());
+        settings.position = GCodeToGeometry.copyObject(line.end);
+        if(command.f !== undefined) {
+            settings.feedrate = command.f;
+        }
+    }
+
+    function manageG2G3(settings, command, totalSize, lines, lineNumber,
+            errorList) {
+        var nextPosition = findPosition(settings.position, command,
+            settings.relative, settings.inMm);
+        var line = new GCodeToGeometry.CurvedLine(lineNumber, settings.position,
+            nextPosition, command, settings);
+        if(line.center !== false) {
+            var temp = line.returnLine();
+            if(temp === false) {
+                errorList.push({
+                    line : lineNumber,
+                    message : "(error) Impossible to create arc.",
+                    isSkipped : true
+                });
+                return true;
+            }
+            settings.feedrate = line.feedrate;
+            settings.typeMove = command.type;
+            checkTotalSize(totalSize, line.getSize());
+            lines.push(temp);
+            settings.position = GCodeToGeometry.copyObject(line.end);
+        } else {
+            errorList.push({
+                line : lineNumber,
+                message : "(error) Physically impossible to do with those values.",
+                isSkipped : true
+            });
+        }
+    }
 
     /**
      * Manages a command (check it, create geometrical line, change setting...).
@@ -292,102 +333,54 @@ GCodeToGeometry.parse = function(code) {
      */
     function manageCommand(command, settings, lineNumber, lines, totalSize,
             errorList) {
-        var line = {};
-        var type = "";
-        var nextPosition;
-
         //Empty line
         if(command.type === undefined && Object.keys(command).length === 0) {
             return true;
         }
 
         setGoodType(command, settings.typeMove);
-        type = command.type;
 
-        if(type === undefined) {
+        if(command.type === undefined) {
             if(command.f !== undefined) {
                 checkErrorFeedrate(command, errorList, lineNumber,
                         settings.feedrate);
                 settings.feedrate = command.f;
             }
-        } else if(type === "G0" &&
+        } else if(command.type === "G0" &&
                 checkG0(command, errorList, lineNumber) === true)
         {
-            nextPosition = findPosition(settings.position, command,
-                settings.relative, settings.inMm);
-            line = new GCodeToGeometry.StraightLine(lineNumber,
-                    settings.position, nextPosition, command, settings);
-            settings.typeMove = type;
-            checkTotalSize(totalSize, line.getSize());
-            lines.push(line.returnLine());
-            settings.position = GCodeToGeometry.copyObject(line.end);
-            if(command.f !== undefined) {
-                settings.feedrate = command.f;
-            }
-        } else if (type === "G1" &&
+            manageG0G1(settings, command, totalSize, lines, lineNumber);
+        } else if (command.type === "G1" &&
             checkG1(command, errorList, lineNumber, settings) === true)
         {
-            nextPosition = findPosition(settings.position, command,
-                settings.relative, settings.inMm);
-            line = new GCodeToGeometry.StraightLine(lineNumber,
-                    settings.position, nextPosition, command, settings);
-            settings.feedrate = line.feedrate;
-            settings.typeMove = type;
-            checkTotalSize(totalSize, line.getSize());
-            lines.push(line.returnLine());
-            settings.position = GCodeToGeometry.copyObject(line.end);
-        } else if((type === "G2" || type === "G3") &&
+            manageG0G1(settings, command, totalSize, lines, lineNumber);
+        } else if((command.type === "G2" || command.type === "G3") &&
                 checkG2G3(command, errorList, lineNumber, settings) === true)
         {
-            nextPosition = findPosition(settings.position, command,
-                settings.relative, settings.inMm);
-            line = new GCodeToGeometry.CurvedLine(lineNumber, settings.position,
-                    nextPosition, command, settings);
-            if(line.center !== false) {
-                var temp = line.returnLine();
-                if(temp === false) {
-                    errorList.push({
-                        line : lineNumber,
-                        message : "(error) Impossible to create arc.",
-                        isSkipped : true
-                    });
-                    return true;
-                }
-                settings.feedrate = line.feedrate;
-                settings.typeMove = type;
-                checkTotalSize(totalSize, line.getSize());
-                lines.push(temp);
-                settings.position = GCodeToGeometry.copyObject(line.end);
-            } else {
-                errorList.push({
-                    line : lineNumber,
-                    message : "(error) Physically impossible to do with those values.",
-                    isSkipped : true
-                });
-            }
-        } else if(type === "G17") {
+            manageG2G3(settings, command, totalSize, lines, lineNumber, errorList);
+        } else if(command.type === "G17") {
             settings.crossAxe = "z";
-        } else if(type === "G18") {
+        } else if(command.type === "G18") {
             settings.crossAxe = "y";
-        } else if(type === "G19") {
+        } else if(command.type === "G19") {
             settings.crossAxe = "x";
-        } else if(type === "G20") {
+        } else if(command.type === "G20") {
             settings.inMm = false;
             if(unitIsSet === false) {
                 setInInch = true;
                 unitIsSet = true;
             }
-        } else if(type === "G21") {
+        } else if(command.type === "G21") {
             settings.inMm = true;
             if(unitIsSet === false) {
                 setInInch = false;
                 unitIsSet = true;
             }
-        } else if(type === "G90") {
+        } else if(command.type === "G90") {
             settings.relative = false;
-        } else if(type === "G91") {
+        } else if(command.type === "G91") {
             settings.relative = true;
-        } else if(type === "M2") {
+        } else if(command.type === "M2") {
             return false;
         }
 
