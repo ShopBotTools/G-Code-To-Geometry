@@ -11,8 +11,8 @@
  */
 
 /**
- * Create an instance of the StraightLine class. This class do the computations
- * for the G0 and G1 commands.
+ * Creates an instance of the StraightLine class. This class does the
+ * computations for the G0 and G1 commands.
  * @class
  *
  * @param {number} index The line number where this command appears.
@@ -21,7 +21,7 @@
  * @param {object} settings The modularity settings.
  * @return {object} An instance of the StraightLine class.
  */
-GCodeToGeometry.StraightLine = function(index, start, parsedCommand, settings) {
+GCodeToGeometry.StraightLine = function(index, start, end, parsedCommand, settings) {
     "use strict";
     var that = this;
 
@@ -64,8 +64,7 @@ GCodeToGeometry.StraightLine = function(index, start, parsedCommand, settings) {
         that.index = index;
         that.word = parsedCommand.type;
         that.start = { x : start.x, y : start.y, z : start.z };
-        that.end = GCodeToGeometry.findPosition(start, parsedCommand,
-                settings.relative, settings.inMm);
+        that.end = end;
         if(parsedCommand.type === "G0") {
             that.feedrate = 0;
         } else if(parsedCommand.f === undefined) {
@@ -80,7 +79,7 @@ GCodeToGeometry.StraightLine = function(index, start, parsedCommand, settings) {
 };
 
 /**
- * Create an instance of the CurvedLine class. This class do the computations
+ * Creates an instance of the CurvedLine class. This class does the computations
  * for the G2 and G3 commands.
  * @class
  *
@@ -90,7 +89,7 @@ GCodeToGeometry.StraightLine = function(index, start, parsedCommand, settings) {
  * @param {object} settings The modularity settings.
  * @return {object} An instance of the CurvedLine class.
  */
-GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
+GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings) {
     "use strict";
     var that = this;
 
@@ -518,8 +517,7 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
         that.index = index;
         that.word = parsedCommand.type;
         that.start = { x : start.x, y : start.y, z : start.z };
-        that.end = GCodeToGeometry.findPosition(start, parsedCommand,
-                settings.relative, settings.inMm);
+        that.end = end;
         that.clockwise = (parsedCommand.type === "G2");
         that.center = findCenter(start, that.end, parsedCommand,
                 that.clockwise, settings.crossAxe, settings.inMm);

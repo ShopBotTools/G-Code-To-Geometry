@@ -38,32 +38,6 @@ GCodeToGeometry.nearlyEqual = function(a, b, precision) {
 };
 
 /**
- * Finds the next position according to the x, y and z contained or not in the
- * command parameters.
- *
- * @param {object} start The 3D start point.
- * @param {object} parameters The command parameters.
- * @param {boolean} relative If the point in the parameters is a relative point.
- * @param {boolean} inMm If the values are in inches.
- * @return {object The point.
-*/
-GCodeToGeometry.findPosition = function(start, parameters, relative, inMm) {
-    var pos = { x : start.x, y : start.y, z : start.z };
-    var d = (inMm === false) ? 1 : GCodeToGeometry.MILLIMETER_TO_INCH;
-    if(relative === true) {
-        if(parameters.x !== undefined) { pos.x += parameters.x * d; }
-        if(parameters.y !== undefined) { pos.y += parameters.y * d; }
-        if(parameters.z !== undefined) { pos.z += parameters.z * d; }
-    } else {
-        if(parameters.x !== undefined) { pos.x = parameters.x * d; }
-        if(parameters.y !== undefined) { pos.y = parameters.y * d; }
-        if(parameters.z !== undefined) { pos.z = parameters.z * d; }
-    }
-
-    return pos;
-};
-
-/**
  * Swaps two objects. It has to be the same objects, too bad if it's not.
  *
  * @param {object} obj1 The first object.
@@ -85,7 +59,6 @@ GCodeToGeometry.swapObjects = function(obj1, obj2) {
         }
     }
 };
-
 
 /**
  * Returns the copy of the object.
@@ -217,9 +190,9 @@ GCodeToGeometry.findAngleVectors2 = function(v1, v2) {
 /**
  * Returns the signed angle in radian in 2d (between -2pi and 2pi).
  *
- * @param {object} v1 the first vector.
- * @param {object} v2 the second vector.
- * @param {boolean} positive if the oriented angle should go counter-clockwise.
+ * @param {object} v1 The first vector.
+ * @param {object} v2 The second vector.
+ * @param {boolean} positive If the oriented angle should go counter-clockwise.
  * @return {number} the angle in radian.
  */
 GCodeToGeometry.findAngleOrientedVectors2 = function(v1, v2, positive) {

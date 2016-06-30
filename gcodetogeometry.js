@@ -162,6 +162,33 @@ GCodeToGeometry.parse = function(code) {
     }
 
     /**
+     * Finds the next position according to the x, y and z contained or not in
+     * the command parameters.
+     *
+     * @param {object} start The 3D start point.
+     * @param {object} parameters The command parameters.
+     * @param {boolean} relative If the point in the parameters is a relative
+     * point.
+     * @param {boolean} inMm If the values are in inches.
+     * @return {object The point.
+    */
+    function findPosition (start, parameters, relative, inMm) {
+        var pos = { x : start.x, y : start.y, z : start.z };
+        var d = (inMm === false) ? 1 : GCodeToGeometry.MILLIMETER_TO_INCH;
+        if(relative === true) {
+            if(parameters.x !== undefined) { pos.x += parameters.x * d; }
+            if(parameters.y !== undefined) { pos.y += parameters.y * d; }
+            if(parameters.z !== undefined) { pos.z += parameters.z * d; }
+        } else {
+            if(parameters.x !== undefined) { pos.x = parameters.x * d; }
+            if(parameters.y !== undefined) { pos.y = parameters.y * d; }
+            if(parameters.z !== undefined) { pos.z = parameters.z * d; }
+        }
+
+        return pos;
+    }
+
+    /**
      * Checks a G0 command.
      * @param  {object}  command    The command
      * @param  {array}   errorList  The error list
@@ -251,6 +278,9 @@ GCodeToGeometry.parse = function(code) {
         return !checkErrorFeedrate(command, errorList, line, previousFeedrate);
     }
 
+    //TODO: manageStraightLine function
+    //manageCurvedLine function
+
     /**
      * Manages a command (check it, create geometrical line, change setting...).
      * @param  {object}  command    The command
@@ -264,6 +294,7 @@ GCodeToGeometry.parse = function(code) {
             errorList) {
         var line = {};
         var type = "";
+        var nextPosition;
 
         //Empty line
         if(command.type === undefined && Object.keys(command).length === 0) {
@@ -282,8 +313,10 @@ GCodeToGeometry.parse = function(code) {
         } else if(type === "G0" &&
                 checkG0(command, errorList, lineNumber) === true)
         {
+            nextPosition = findPosition(settings.position, command,
+                settings.relative, settings.inMm);
             line = new GCodeToGeometry.StraightLine(lineNumber,
-                    settings.position, command, settings);
+                    settings.position, nextPosition, command, settings);
             settings.typeMove = type;
             checkTotalSize(totalSize, line.getSize());
             lines.push(line.returnLine());
@@ -294,8 +327,10 @@ GCodeToGeometry.parse = function(code) {
         } else if (type === "G1" &&
             checkG1(command, errorList, lineNumber, settings) === true)
         {
+            nextPosition = findPosition(settings.position, command,
+                settings.relative, settings.inMm);
             line = new GCodeToGeometry.StraightLine(lineNumber,
-                    settings.position, command, settings);
+                    settings.position, nextPosition, command, settings);
             settings.feedrate = line.feedrate;
             settings.typeMove = type;
             checkTotalSize(totalSize, line.getSize());
@@ -304,8 +339,10 @@ GCodeToGeometry.parse = function(code) {
         } else if((type === "G2" || type === "G3") &&
                 checkG2G3(command, errorList, lineNumber, settings) === true)
         {
+            nextPosition = findPosition(settings.position, command,
+                settings.relative, settings.inMm);
             line = new GCodeToGeometry.CurvedLine(lineNumber, settings.position,
-                    command, settings);
+                    nextPosition, command, settings);
             if(line.center !== false) {
                 var temp = line.returnLine();
                 if(temp === false) {
