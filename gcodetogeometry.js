@@ -104,6 +104,17 @@ GCodeToGeometry.parse = function(code) {
     }
 
     /**
+     * Creates an error object.
+     * @param {number} line The line number.
+     * @param {string} message The message.
+     * @param {boolean} isSkipped If the command is skipped.
+     * @return {object} The error object.
+     */
+    function createError(line, message, isSkipped) {
+        return { line : line, message : message, isSkipped : isSkipped };
+    }
+
+    /**
      * Checks if there is an error due to the feed rate configuration.
      * @param  {object}  command    The command (the feed rate can be changed)
      * @param  {object}  errorList  The error list
@@ -126,21 +137,19 @@ GCodeToGeometry.parse = function(code) {
         }
 
         if(consideredFeedrate < 0) {
-            errorList.push({
-                line : line,
-                message : "(warning) Cannot use a negative feed rate " +
+            errorList.push(createError(
+                line,
+                "(warning) Cannot use a negative feed rate " +
                           "(the absolute value is used).",
-                isSkipped : false
-            });
+                false
+            ));
             c.f = Math.abs(consideredFeedrate);
             return false;
         }
 
-        errorList.push({
-            line : line,
-            message : "(error) Cannot use a null feed rate (skipped).",
-            isSkipped : true
-        });
+        errorList.push(createError(
+            line, "(error) Cannot use a null feed rate (skipped).", true
+        ));
         settings.feedrate = 0;
 
         return true;
@@ -201,11 +210,9 @@ GCodeToGeometry.parse = function(code) {
         parameters.splice(parameters.indexOf("type"), 1);
 
         if(checkWrongParameter(acceptedParameters, parameters) === true) {
-            errorList.push({
-                line : line,
-                message : "(warning) Some parameters are wrong.",
-                isSkipped : false
-            });
+            errorList.push(createError(
+                line, "(warning) Some parameters are wrong.", false
+            ));
         }
         return true;
     }
@@ -224,11 +231,9 @@ GCodeToGeometry.parse = function(code) {
         parameters.splice(parameters.indexOf("type"), 1);
 
         if(checkWrongParameter(acceptedParameters, parameters) === true) {
-            errorList.push({
-                line : line,
-                message : "(warning) Some parameters are wrong.",
-                isSkipped : false
-            });
+            errorList.push(createError(
+                line, "(warning) Some parameters are wrong.", false
+            ));
         }
 
         return !checkErrorFeedrate(command, errorList, line, previousFeedrate);
@@ -248,37 +253,42 @@ GCodeToGeometry.parse = function(code) {
         parameters.splice(parameters.indexOf("type"), 1);
 
         if(checkWrongParameter(acceptedParameters, parameters) === true) {
-            errorList.push({
-                line : line,
-                message : "(warning) Some parameters are wrong.",
-                isSkipped : false
-            });
+            errorList.push(createError(
+                line, "(warning) Some parameters are wrong.", false
+            ));
         }
 
         if(command.r === undefined && command.i === undefined &&
                 command.j === undefined && command.k === undefined) {
-            errorList.push({
-                line : line,
-                message : "(error) No parameter R, I, J or K.",
-                isSkipped : true
-            });
+            errorList.push(createError(
+                line, "(error) No parameter R, I, J or K.", true
+            ));
             return false;
         }
 
         if(command.r !== undefined && (command.i !== undefined ||
             command.j !== undefined || command.k !== undefined)) {
-            errorList.push({
-                line : line,
-                message : "(error) Cannot use R and I, J or K at the same time.",
-                isSkipped : true
-            });
+            errorList.push(createError(
+                line,
+                "(error) Cannot use R and I, J or K at the same time.",
+                true
+            ));
             return false;
         }
 
         return !checkErrorFeedrate(command, errorList, line, previousFeedrate);
     }
 
-    function manageG0G1(settings, command, totalSize, lines, lineNumber) {
+    /**
+     * Manages a 60 or G1 command.
+     * @param  {object}  command    The command
+     * @param  {object}  settings   The modularity settings
+     * @param  {object}  totalSize  The the whole operation size (modified)
+     * @param  {array}   lines      The array containing the lines
+     * @param  {number}  lineNumber The line number
+     * @param  {object}  errorList  The error list
+     */
+    function manageG0G1(command, settings, lineNumber, lines, totalSize) {
         var nextPosition = findPosition(settings.position, command,
             settings.relative, settings.inMm);
         var line = new GCodeToGeometry.StraightLine(lineNumber,
@@ -292,7 +302,16 @@ GCodeToGeometry.parse = function(code) {
         }
     }
 
-    function manageG2G3(settings, command, totalSize, lines, lineNumber,
+    /**
+     * Manages a G2 or G3 command.
+     * @param  {object}  command    The command
+     * @param  {object}  settings   The modularity settings
+     * @param  {number}  lineNumber The line number
+     * @param  {array}   lines      The array containing the lines
+     * @param  {object}  totalSize  The the whole operation size (modified)
+     * @param  {object}  errorList  The error list
+     */
+    function manageG2G3(command, settings, lineNumber, lines, totalSize,
             errorList) {
         var nextPosition = findPosition(settings.position, command,
             settings.relative, settings.inMm);
@@ -301,12 +320,10 @@ GCodeToGeometry.parse = function(code) {
         if(line.center !== false) {
             var temp = line.returnLine();
             if(temp === false) {
-                errorList.push({
-                    line : lineNumber,
-                    message : "(error) Impossible to create arc.",
-                    isSkipped : true
-                });
-                return true;
+                errorList.push(createError(
+                    lineNumber, "(error) Impossible to create arc.", true
+                ));
+                return;
             }
             settings.feedrate = line.feedrate;
             settings.typeMove = command.type;
@@ -314,11 +331,11 @@ GCodeToGeometry.parse = function(code) {
             lines.push(temp);
             settings.position = GCodeToGeometry.copyObject(line.end);
         } else {
-            errorList.push({
-                line : lineNumber,
-                message : "(error) Physically impossible to do with those values.",
-                isSkipped : true
-            });
+            errorList.push(createError(
+                lineNumber,
+                "(error) Physically impossible to do with those values.",
+                true
+            ));
         }
     }
 
@@ -327,6 +344,7 @@ GCodeToGeometry.parse = function(code) {
      * @param  {object}  command    The command
      * @param  {object}  settings   The modularity settings
      * @param  {number}  lineNumber The line number
+     * @param  {array}   lines      The array containing the lines
      * @param  {object}  totalSize  The the whole operation size (modified)
      * @param  {object}  errorList  The error list
      * @return {bool}  Returns true if have to continue, else false
@@ -349,15 +367,15 @@ GCodeToGeometry.parse = function(code) {
         } else if(command.type === "G0" &&
                 checkG0(command, errorList, lineNumber) === true)
         {
-            manageG0G1(settings, command, totalSize, lines, lineNumber);
+            manageG0G1(command, settings, lineNumber, lines, totalSize);
         } else if (command.type === "G1" &&
             checkG1(command, errorList, lineNumber, settings) === true)
         {
-            manageG0G1(settings, command, totalSize, lines, lineNumber);
+            manageG0G1(command, settings, lineNumber, lines, totalSize);
         } else if((command.type === "G2" || command.type === "G3") &&
                 checkG2G3(command, errorList, lineNumber, settings) === true)
         {
-            manageG2G3(settings, command, totalSize, lines, lineNumber, errorList);
+            manageG2G3(command, settings, lineNumber, lines, totalSize, errorList);
         } else if(command.type === "G17") {
             settings.crossAxe = "z";
         } else if(command.type === "G18") {
@@ -394,7 +412,7 @@ GCodeToGeometry.parse = function(code) {
     var i = 0, j = 0;
     var tabRes = [];
     var parsing = true;
-    var lines= [];
+    var lines = [];
     var errorList = [];
 
     var settings = {
@@ -436,11 +454,9 @@ GCodeToGeometry.parse = function(code) {
     }
 
     if(i < gcode.length) {
-        errorList.push({
-            line : i + 1,
-            message : "(warning) The next code is not executed.",
-            isSkipped : false
-        });
+        errorList.push(createError(
+            i + 1, "(warning) The next code is not executed.", false
+        ));
     }
 
     return {
