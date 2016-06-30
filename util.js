@@ -215,12 +215,12 @@ GCodeToGeometry.findAngleVectors2 = function(v1, v2) {
 };
 
 /**
- * Returns the signed angle in radian in 2D (between -2PI and 2PI).
+ * Returns the signed angle in radian in 2d (between -2pi and 2pi).
  *
- * @param {object} v1 The first vector.
- * @param {object} v2 The second vector.
- * @param {boolean} positive If the oriented angle should go counter-clockwise.
- * @return {number} The angle in radian.
+ * @param {object} v1 the first vector.
+ * @param {object} v2 the second vector.
+ * @param {boolean} positive if the oriented angle should go counter-clockwise.
+ * @return {number} the angle in radian.
  */
 GCodeToGeometry.findAngleOrientedVectors2 = function(v1, v2, positive) {
     var angle =  GCodeToGeometry.findAngleVectors2(v1, v2);
@@ -233,47 +233,4 @@ GCodeToGeometry.findAngleOrientedVectors2 = function(v1, v2, positive) {
     }
 
     return angle;
-};
-
-//radius is positive or negative
-//Return false if impossible to set the center, else return the center position
-GCodeToGeometry.findCenter = function(start, end, radius, clockwise, crossAxe) {
-    var se = { x : end.x - start.x, y : end.y - start.y,
-        z : end.z - start.z
-    };
-    var angle = 0, l = 1, lSE = 0, r = Math.abs(radius), aCSCE = 0;
-    var center = { x : 0, y : 0, z : 0 };
-    var axes = GCodeToGeometry.findAxes(crossAxe);
-    lSE = Math.sqrt(se[axes.re] * se[axes.re] + se[axes.im] * se[axes.im]);
-
-    if(lSE > Math.abs(radius * 2) || lSE === 0) {
-        return false;
-    }
-
-    angle = Math.acos(lSE / (2 * r));
-    l = r / lSE;
-    GCodeToGeometry.scaleAndRotation(start, end, center, angle, l, axes.re, axes.im);
-    aCSCE = GCodeToGeometry.findAngleVectors2(
-        { x: start[axes.re]-center[axes.re], y: start[axes.im]-center[axes.im] },
-        { x: end[axes.re]-center[axes.re], y: end[axes.im]-center[axes.im] }
-    );
-
-    if(clockwise === true) {
-        if(radius > 0 && -Math.PI <= aCSCE && aCSCE <= 0) {
-            return center;
-        }
-        if(radius < 0 && 0 <= aCSCE && aCSCE <= Math.PI) {
-            return center;
-        }
-    } else {
-        if(radius > 0 && 0 <= aCSCE && aCSCE <= Math.PI) {
-            return center;
-        }
-        if(radius < 0 && -Math.PI <= aCSCE && aCSCE <= 0) {
-            return center;
-        }
-    }
-
-    GCodeToGeometry.scaleAndRotation(start, end, center, -angle, l, axes.re, axes.im);
-    return center;
 };

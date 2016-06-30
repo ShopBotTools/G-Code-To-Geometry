@@ -1,5 +1,5 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global GCodeToGeometry */
+/*global GCodeToGeometry*/
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -358,6 +358,57 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
         };
     };
 
+    /**
+     * Finds the center of the arc. Returns false if impossible.
+     *
+     * @param {object} start The starting point of the arc.
+     * @param {object} end The ending point of the arc.
+     * @param {boolean} clockwise If the arc goes clockwise.
+     * @param {string} crossAxe The name of the axe given by the cross product
+     * of the vectors defining the plane.
+     * @return {object|boolean} The center point or false.
+     */
+    function findCenterWithRadius(start, end, radius, clockwise, crossAxe) {
+        var se = { x : end.x - start.x, y : end.y - start.y,
+            z : end.z - start.z
+        };
+        var angle = 0, l = 1, lSE = 0, r = Math.abs(radius), aCSCE = 0;
+        var center = { x : 0, y : 0, z : 0 };
+        var axes = GCodeToGeometry.findAxes(crossAxe);
+        lSE = Math.sqrt(se[axes.re] * se[axes.re] + se[axes.im] * se[axes.im]);
+
+        if(lSE > Math.abs(radius * 2) || lSE === 0) {
+            return false;
+        }
+
+        angle = Math.acos(lSE / (2 * r));
+        l = r / lSE;
+        GCodeToGeometry.scaleAndRotation(start, end, center, angle, l, axes.re, axes.im);
+        aCSCE = GCodeToGeometry.findAngleVectors2(
+            { x: start[axes.re]-center[axes.re], y: start[axes.im]-center[axes.im] },
+            { x: end[axes.re]-center[axes.re], y: end[axes.im]-center[axes.im] }
+        );
+
+        if(clockwise === true) {
+            if(radius > 0 && -Math.PI <= aCSCE && aCSCE <= 0) {
+                return center;
+            }
+            if(radius < 0 && 0 <= aCSCE && aCSCE <= Math.PI) {
+                return center;
+            }
+        } else {
+            if(radius > 0 && 0 <= aCSCE && aCSCE <= Math.PI) {
+                return center;
+            }
+            if(radius < 0 && -Math.PI <= aCSCE && aCSCE <= 0) {
+                return center;
+            }
+        }
+
+        GCodeToGeometry.scaleAndRotation(start, end, center, -angle, l, axes.re, axes.im);
+        return center;
+    }
+
     //radius is positive or negative
     function findCenter(start, end, parsedCommand, clockwise, crossAxe, inMm) {
         var delta = (inMm === false) ? 1 : GCodeToGeometry.MILLIMETER_TO_INCH;
@@ -392,8 +443,11 @@ GCodeToGeometry.CurvedLine = function(index, start, parsedCommand, settings) {
                 return false;
             }
         } else {
-            center = GCodeToGeometry.findCenter(start, end,
-                    parsedCommand.r * delta, clockwise, crossAxe);
+            center = findCenterWithRadius(start, end, parsedCommand.r * delta,
+                clockwise, crossAxe);
+            if(center === false) {
+                return false;
+            }
         }
         center[crossAxe] = start[crossAxe];
         return center;
