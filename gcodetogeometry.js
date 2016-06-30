@@ -293,7 +293,7 @@ GCodeToGeometry.parse = function(code) {
             settings.relative, settings.inMm);
         var line = new GCodeToGeometry.StraightLine(lineNumber,
             settings.position, nextPosition, command, settings);
-        settings.typeMove = command.type;
+        settings.previousMoveCommand = command.type;
         checkTotalSize(totalSize, line.getSize());
         lines.push(line.returnLine());
         settings.position = GCodeToGeometry.copyObject(line.end);
@@ -326,7 +326,7 @@ GCodeToGeometry.parse = function(code) {
                 return;
             }
             settings.feedrate = line.feedrate;
-            settings.typeMove = command.type;
+            settings.previousMoveCommand = command.type;
             checkTotalSize(totalSize, line.getSize());
             lines.push(temp);
             settings.position = GCodeToGeometry.copyObject(line.end);
@@ -356,7 +356,7 @@ GCodeToGeometry.parse = function(code) {
             return true;
         }
 
-        setGoodType(command, settings.typeMove);
+        setGoodType(command, settings.previousMoveCommand);
 
         if(command.type === undefined) {
             if(command.f !== undefined) {
@@ -417,7 +417,7 @@ GCodeToGeometry.parse = function(code) {
 
     var settings = {
         feedrate : 0,
-        typeMove : "",
+        previousMoveCommand : "",
         crossAxe : "z",
         inMm : false,
         relative : false,
