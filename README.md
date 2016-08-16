@@ -34,8 +34,9 @@ Example:
     G2 I1 R2      (will be skipped because cannot have R and I, J or K at)
                   (the same time. Also, will have an error).
 
-GCode has no real standard, therefore had to make choices on what is supported
-or not. This software tries to support all the features Shopbot Tools support.
+GCode has no real standard, therefore we had to make choices on what is
+supported or not. This software tries to support all the features Shopbot Tools
+support.
 
 For each line, everything written after a ``(`` or ``;`` is considered as
 comment.
