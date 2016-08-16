@@ -7,6 +7,9 @@ independently.
 This is a work in progress but it should be functional. Maybe the variables
 will be renamed so be careful if you update for a new version.
 
+Generated API documentation can be found
+[here](http://shopbottools.github.io/G-Code-To-Geometry/).
+
 ## List of supported commands:
 
 This software supports the following commands with the following parameters
