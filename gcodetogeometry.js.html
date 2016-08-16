@@ -1,4 +1,32 @@
-/*jslint todo: true, browser: true, continue: true, white: true*/
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: gcodetogeometry.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: gcodetogeometry.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*jslint todo: true, browser: true, continue: true, white: true*/
 /*global GCodeToGeometry, GParser*/
 
 /**
@@ -39,7 +67,7 @@ GCodeToGeometry.parse = function(code) {
         var tab = [];
         var emptyObj = true;
 
-        for(i=0; i < parsed.words.length; i++) {
+        for(i=0; i &lt; parsed.words.length; i++) {
             letter = parsed.words[i][0];
             number = parsed.words[i][1];
             if(letter === "G" || letter === "M") {
@@ -98,7 +126,7 @@ GCodeToGeometry.parse = function(code) {
             if(totalSize.min[keys[i]] > size.min[keys[i]]) {
                 totalSize.min[keys[i]] = size.min[keys[i]];
             }
-            if(totalSize.max[keys[i]] < size.max[keys[i]]) {
+            if(totalSize.max[keys[i]] &lt; size.max[keys[i]]) {
                 totalSize.max[keys[i]] = size.max[keys[i]];
             }
         }
@@ -129,7 +157,7 @@ GCodeToGeometry.parse = function(code) {
         var c = command;
         var consideredFeedrate = (c.f === undefined) ? settings.feedrate : c.f;
 
-        if(c.type !== undefined && c.type !== "G1" && c.type !== "G2" &&
+        if(c.type !== undefined &amp;&amp; c.type !== "G1" &amp;&amp; c.type !== "G2" &amp;&amp;
                 c.type !== "G3") {
             return false;
         }
@@ -138,7 +166,7 @@ GCodeToGeometry.parse = function(code) {
             return false;
         }
 
-        if(consideredFeedrate < 0) {
+        if(consideredFeedrate &lt; 0) {
             errorList.push(createError(
                 line,
                 "(warning) Cannot use a negative feed rate " +
@@ -261,15 +289,15 @@ GCodeToGeometry.parse = function(code) {
             ));
         }
 
-        if(command.r === undefined && command.i === undefined &&
-                command.j === undefined && command.k === undefined) {
+        if(command.r === undefined &amp;&amp; command.i === undefined &amp;&amp;
+                command.j === undefined &amp;&amp; command.k === undefined) {
             errorList.push(createError(
                 line, "(error) No parameter R, I, J or K.", true
             ));
             return false;
         }
 
-        if(command.r !== undefined && (command.i !== undefined ||
+        if(command.r !== undefined &amp;&amp; (command.i !== undefined ||
             command.j !== undefined || command.k !== undefined)) {
             errorList.push(createError(
                 line,
@@ -356,7 +384,7 @@ GCodeToGeometry.parse = function(code) {
     function manageCommand(command, settings, lineNumber, lines, totalSize,
             errorList) {
         //Empty line
-        if(command.type === undefined && Object.keys(command).length === 0) {
+        if(command.type === undefined &amp;&amp; Object.keys(command).length === 0) {
             return true;
         }
 
@@ -368,15 +396,15 @@ GCodeToGeometry.parse = function(code) {
                         settings.feedrate);
                 settings.feedrate = command.f;
             }
-        } else if(command.type === "G0" &&
+        } else if(command.type === "G0" &amp;&amp;
                 checkG0(command, errorList, lineNumber) === true)
         {
             manageG0G1(command, settings, lineNumber, lines, totalSize);
-        } else if (command.type === "G1" &&
+        } else if (command.type === "G1" &amp;&amp;
             checkG1(command, errorList, lineNumber, settings) === true)
         {
             manageG0G1(command, settings, lineNumber, lines, totalSize);
-        } else if((command.type === "G2" || command.type === "G3") &&
+        } else if((command.type === "G2" || command.type === "G3") &amp;&amp;
                 checkG2G3(command, errorList, lineNumber, settings) === true)
         {
             manageG2G3(command, settings, lineNumber, lines, totalSize, errorList);
@@ -440,7 +468,7 @@ GCodeToGeometry.parse = function(code) {
     var gcode = code.split('\n');
 
     i = 0;
-    while(i < gcode.length && parsing === true) {
+    while(i &lt; gcode.length &amp;&amp; parsing === true) {
         //Sorry for not being really readable :'(
         tabRes = parseParsedGCode(
             GParser.parse(
@@ -449,7 +477,7 @@ GCodeToGeometry.parse = function(code) {
         );
 
         j = 0;
-        while(j < tabRes.length && parsing === true) {
+        while(j &lt; tabRes.length &amp;&amp; parsing === true) {
             parsing = manageCommand(tabRes[j], settings, i+1, lines, totalSize,
                     errorList);
             j++;
@@ -457,7 +485,7 @@ GCodeToGeometry.parse = function(code) {
         i++;
     }
 
-    if(i < gcode.length) {
+    if(i &lt; gcode.length) {
         errorList.push(createError(
             i + 1, "(warning) The next code is not executed.", false
         ));
@@ -471,3 +499,26 @@ GCodeToGeometry.parse = function(code) {
         errorList : errorList
     };
 };
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="GCodeToGeometry.CurvedLine.html">CurvedLine</a></li><li><a href="GCodeToGeometry.StraightLine.html">StraightLine</a></li></ul><h3>Namespaces</h3><ul><li><a href="GCodeToGeometry.html">GCodeToGeometry</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Tue Aug 16 2016 08:20:14 GMT+0200 (CEST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,4 +1,32 @@
-/*jslint todo: true, browser: true, continue: true, white: true*/
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: lines.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: lines.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*jslint todo: true, browser: true, continue: true, white: true*/
 /*global GCodeToGeometry*/
 
 /**
@@ -221,7 +249,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
             y : that.start[axes.im] - center[axes.im] };
         var i = 0, angle = 0, sign = (that.clockwise === true) ? -1 : 1;
 
-        if(num90 === 0 && numSmall === 0) {
+        if(num90 === 0 &amp;&amp; numSmall === 0) {
             return arcs;
         }
 
@@ -231,7 +259,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
                     that.clockwise === false
                     );
 
-            for(i = 0; i < num90; i++) {
+            for(i = 0; i &lt; num90; i++) {
                 arcs.push(GCodeToGeometry.copyObject(bez90));
                 rotAndPlaBez(arcs[i], center, angle, axes.re, axes.im);
                 // angle += Math.PI / 2 * sign;
@@ -267,7 +295,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
     }
 
     function arcToBezier() {
-        var num90 = 0, numSmall = 1;  //Number arc = pi/2 and arc < pi/2
+        var num90 = 0, numSmall = 1;  //Number arc = pi/2 and arc &lt; pi/2
         var bez90 = {}, bezSmall = {};
         var p90 = 0, pLittle = 0, pAngle = 0; //Pitch of the arcs
         var angle = getBezierAngle();
@@ -293,7 +321,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         //Find helical Bézier's curves
         if(num90 > 0) {
             bez90 = cubBez2DInt(halfPI, radius);
-            cubBez2DTo3D(bez90, (angle < 0), p90, that.crossAxe);
+            cubBez2DTo3D(bez90, (angle &lt; 0), p90, that.crossAxe);
         }
         if(numSmall > 0) {
             angle = absAngle - num90 * halfPI;
@@ -301,7 +329,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
                 angle = -angle;
             }
             bezSmall = cubBez2DInt(angle, radius);
-            cubBez2DTo3D(bezSmall, (angle < 0), pLittle, that.crossAxe);
+            cubBez2DTo3D(bezSmall, (angle &lt; 0), pLittle, that.crossAxe);
         }
 
         return getFullBezier(num90, bez90, numSmall, bezSmall, p90);
@@ -330,7 +358,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         bez90 = cubBez2DInt(halfPI, radius);
         cubBez2DTo3D(bez90, that.clockwise, pitch, that.crossAxe);
 
-        for(i = 0; i < 4; i++) {
+        for(i = 0; i &lt; 4; i++) {
             bezier.push(GCodeToGeometry.copyObject(bez90));
             rotAndPlaBez(bezier[i], center, rotAngle, axes.re, axes.im);
             rotAngle += halfPI * sign;
@@ -353,7 +381,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         var bez = [];
         var axes = GCodeToGeometry.findAxes(that.crossAxe);
 
-        if(that.start[axes.re] === that.end[axes.re] &&
+        if(that.start[axes.re] === that.end[axes.re] &amp;&amp;
                 that.start[axes.im] === that.end[axes.im]) {
             bez = circleToBezier();
         } else {
@@ -404,17 +432,17 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         );
 
         if(clockwise === true) {
-            if(radius > 0 && -Math.PI <= aCSCE && aCSCE <= 0) {
+            if(radius > 0 &amp;&amp; -Math.PI &lt;= aCSCE &amp;&amp; aCSCE &lt;= 0) {
                 return center;
             }
-            if(radius < 0 && 0 <= aCSCE && aCSCE <= Math.PI) {
+            if(radius &lt; 0 &amp;&amp; 0 &lt;= aCSCE &amp;&amp; aCSCE &lt;= Math.PI) {
                 return center;
             }
         } else {
-            if(radius > 0 && 0 <= aCSCE && aCSCE <= Math.PI) {
+            if(radius > 0 &amp;&amp; 0 &lt;= aCSCE &amp;&amp; aCSCE &lt;= Math.PI) {
                 return center;
             }
-            if(radius < 0 && -Math.PI <= aCSCE && aCSCE <= 0) {
+            if(radius &lt; 0 &amp;&amp; -Math.PI &lt;= aCSCE &amp;&amp; aCSCE &lt;= 0) {
                 return center;
             }
         }
@@ -492,7 +520,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         var min = { x : 0 , y : 0, z : 0 }, max = { x : 0 , y : 0, z : 0 };
 
         // Is circle
-        if(that.start[axes.re] === that.end[axes.re] &&
+        if(that.start[axes.re] === that.end[axes.re] &amp;&amp;
                 that.start[axes.im] === that.end[axes.im]) {
             min[axes.re] = that.center[axes.re] - radius;
             min[axes.im] = that.center[axes.im] - radius;
@@ -545,3 +573,26 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
 
     initialize(index, start, parsedCommand, settings);
 };
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="GCodeToGeometry.CurvedLine.html">CurvedLine</a></li><li><a href="GCodeToGeometry.StraightLine.html">StraightLine</a></li></ul><h3>Namespaces</h3><ul><li><a href="GCodeToGeometry.html">GCodeToGeometry</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Tue Aug 16 2016 08:20:14 GMT+0200 (CEST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

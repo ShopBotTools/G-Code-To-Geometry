@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>Handibot-GCode-To-Geometry</h1><p>Parse GCode into geometrical lines and curves.</p>
+<p>This program is a part of the Shopbot Tools new system but it can be used
+independently.</p>
+<p>This is a work in progress but it should be functional. Maybe the variables
+will be renamed so be careful if you update for a new version.</p>
+<h2>List of supported commands:</h2><p>This software supports the following commands with the following parameters
+(which can be optional):</p>
+<ul>
+<li><code>G0 X... Y... Z...</code></li>
+<li><code>G1 X... Y... Z... F...</code></li>
+<li><code>G2 X... Y... Z... F... I... J... K...</code> or  <code>G2 X... Y... Z... F... R...</code></li>
+<li><code>G3 X... Y... Z... F... I... J... K...</code> or  <code>G3 X... Y... Z... F... R...</code></li>
+<li><code>G17</code></li>
+<li><code>G18</code></li>
+<li><code>G19</code></li>
+<li><code>G20</code></li>
+<li><code>G21</code></li>
+<li><code>G90</code></li>
+<li><code>G91</code></li>
+<li><code>M02</code>  (this is the only M command parsed because it stops everything, after
+this command nothing is parsed)</li>
+</ul>
+<p>If a parameter is wrong, it will be parsed. It will maybe be skipped.</p>
+<p>Example:</p>
+<pre class="prettyprint source"><code>G0 X1 Y1  Ook (will act as G0 X1 Y1, will have a warning)
+G2 I1 R2      (will be skipped because cannot have R and I, J or K at)
+              (the same time. Also, will have an error).</code></pre><p>GCode has no real standard, therefore had to make choices on what is supported
+or not. This software tries to support all the features Shopbot Tools support.</p>
+<p>For each line, everything written after a <code>(</code> or <code>;</code> is considered as
+comment.</p>
+<h2>Behaviour</h2><p>By default, the GCode is considered having this setting:</p>
+<ul>
+<li>It works on a XY plane (<code>G17</code>)</li>
+<li>The values are considered being in inches (<code>G20</code>)</li>
+<li>The position is absolute (<code>G90</code>)</li>
+<li>The bit is at (0, 0, 0)</li>
+<li>The feed rate is set to 0</li>
+</ul>
+<p>All the values returned by this program are in inches.</p>
+<p>If no feed rate or a negative feed rate has been set for a <code>G1</code>, <code>G2</code> or
+<code>G3</code> command, it is considered that the machine will use a default value for
+the feed rate. However, if the feed rate is equal to zero, the command will be
+skipped.</p>
+<h2>Error and warning system</h2><p>When parsed, a list of errors is made. When a command has an error, this means
+this command is skipped. When a command has a warning, this means this command
+is executed but the behaviour can be different when executed by a real tool.</p>
+<p>The error and warning correspond to the behaviour of the Shopbot Tools'
+machines.</p>
+<h2>How to use it:</h2><ol>
+<li>Download the minified version (if there is one) and include the file. Or
+download all the scripts and include as in the example.html file.</li>
+<li><p>In your code, you just have to use the function GCodeToGeometry.parse(code).</p>
+<p> var result = GCodeToGeometry.parse(myGCode);</p>
+</li>
+</ol>
+<p>The parameter must be the GCode in string.</p>
+<p>The function will return an object which contains:</p>
+<ul>
+<li><strong>gcode</strong> : an array of strings, contains the gcode parsed split (each cell
+contains a line)</li>
+<li><strong>size</strong> : an object, contains the maximum and minimal coordinate of
+the bounding box (explained further)</li>
+<li><strong>lines</strong> : an array of objects, each cell represent a straight or curved line</li>
+<li><strong>errorList</strong> : an array of errors and warnings</li>
+<li><strong>displayInInch</strong> : indicate if the values should be displayed in inches (else
+in millimeters)</li>
+</ul>
+<p><strong>All numerical values are in inches</strong>.</p>
+<h2>Object size</h2><p>It contains the &quot;minimal&quot; point and the &quot;maximum&quot; point of the bounding box of
+the whole path operation.
+You can use it to calculate the width, length and width of the operation.
+The points are in inches.
+Example:</p>
+<pre class="prettyprint source"><code>size = {
+    min : { x : 0, y : 0, z : -2 },
+    max : { x : 10, y : 5, z : 3 }
+}</code></pre><h2>Line objects</h2><p>There are two types of lines.</p>
+<h3>Straight line</h3><p>This object contains the line number in the GCode where the command is used.
+<strong>The line numbers start by 1</strong>.
+It contains the type of command (<strong>G0</strong> or <strong>G1</strong>) and the feed rate (in inch by
+minute).
+It contains the start point, the end point.
+Example:</p>
+<pre class="prettyprint source"><code>line = {
+    lineNumber : 12,
+    type : &quot;G0&quot;,
+    feedrate : 2.5,
+    start : { x : 5, y : 9, z : 3 },
+    end : { x : 3, y : 5, z : 3 }
+}</code></pre><h3>Curved line</h3><p>This object contains the line number in the GCode where the command is used.
+<strong>The line numbers start by 1</strong>.
+It contains the type of command (<strong>G2</strong> or <strong>G3</strong>) and the feed rate (in inch by
+minute).
+It contains an array of cubic Bézier's curves approximating the circular path.
+Each Bézier's curve object contain four control point.
+Example:</p>
+<pre class="prettyprint source"><code>line = {
+    lineNumber : 4,
+    type : &quot;G3&quot;,
+    feedrate : 2.5,
+    beziers : [
+        {
+            p0 : { x : 0     , y : 0     , z : 8.881 }  ,
+            p1 : { x : 0.846 , y : 1.677 , z : -3.279 } ,
+            p2 : { x : 0.846 , y : 3.333 , z : -6.721 } ,
+            p3 : { x : 0     , y : 5     , z : -10 }    ,
+        }
+    ]
+}</code></pre><h2>Error object</h2><p>This object contains the information about an error or warning for a command at
+a line number. Is considered as error when the command is skipped, else as a
+warning.
+Example:</p>
+<pre class="prettyprint source"><code>error = {
+    isSkipped : false
+    line : 2
+    message : &quot;(warning) No feed rate set (the default is used).&quot;
+}</code></pre><h2>Example</h2><p>Here is an example of a GCode correctly parsed:</p>
+<pre class="prettyprint source"><code>(Illerminaty)
+G1 Z-0.333 F66.6
+G1 X2
+G1 X1 Y1.73205
+G1 X0 Y0
+G1 Z1
+G0 X0.4 Y0.57735
+G1 Z-0.333 F66.6
+G3 X1.6 R0.8 F91.1
+G3 X0.4 R0.8
+G1 Z1</code></pre></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="GCodeToGeometry.CurvedLine.html">CurvedLine</a></li><li><a href="GCodeToGeometry.StraightLine.html">StraightLine</a></li></ul><h3>Namespaces</h3><ul><li><a href="GCodeToGeometry.html">GCodeToGeometry</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Tue Aug 16 2016 08:20:14 GMT+0200 (CEST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
