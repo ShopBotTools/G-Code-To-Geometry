@@ -13,23 +13,26 @@
 /**
  * Creates an instance of the StraightLine class. This class does the
  * computations for the G0 and G1 commands.
- * @class
  *
- * @param {number} index The line number where this command appears.
- * @param {Object} start The 3D start point.
- * @param {object} parsedCommand The parsed command.
- * @param {object} settings The modularity settings.
- * @return {object} An instance of the StraightLine class.
+ * @class
+ * @param {number} index - The line number where this command appears.
+ * @param {Point} start - The 3D start point.
+ * @param {ParsedCommand} parsedCommand - The parsed command.
+ * @param {Settings} settings - The modularity settings.
+ * @return {StraightLine} An instance of the StraightLine class.
  */
 GCodeToGeometry.StraightLine = function(index, start, end, parsedCommand, settings) {
     "use strict";
     var that = this;
 
     /**
-     * Returns a line object: { lineNumber (number), type (string),
-     *  start (point), end (point) }
+     * Returns a line object of type "G0" or "G1" (corresponding to
+     * parsedCommand).
      *
-     * @return {object} Return a line object.
+     * @function returnLine
+     * @memberof GCodeToGeometry.StraightLine
+     * @instance
+     * @return {Line} The line object.
      */
     that.returnLine = function() {
         return {
@@ -42,9 +45,12 @@ GCodeToGeometry.StraightLine = function(index, start, end, parsedCommand, settin
     };
 
     /**
-     * Returns a size object: { min (point), max (point) }. This size object
-     * describe the minimal and maximum point of this line.
-     * @return {object} Return a size object.
+     * Returns the size of the line.
+     *
+     * @function getSize
+     * @memberof GCodeToGeometry.StraightLine
+     * @instance
+     * @return {Size} The size.
      */
     that.getSize = function() {
         return {
@@ -81,13 +87,13 @@ GCodeToGeometry.StraightLine = function(index, start, end, parsedCommand, settin
 /**
  * Creates an instance of the CurvedLine class. This class does the computations
  * for the G2 and G3 commands.
- * @class
  *
- * @param {number} index The line number where this command appears.
- * @param {Object} start The 3D start point.
- * @param {object} parsedCommand The parsed command.
- * @param {object} settings The modularity settings.
- * @return {object} An instance of the CurvedLine class.
+ * @class
+ * @param {number} index - The line number where this command appears.
+ * @param {Point} start - The 3D start point.
+ * @param {ParsedCommand} parsedCommand - The parsed command.
+ * @param {Settings} settings - The modularity settings.
+ * @return {CurvedLine} An instance of the CurvedLine class.
  */
 GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings) {
     "use strict";
@@ -334,6 +340,15 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         return getFullBezier(4, bez90, 0, bez90, pitch);
     }
 
+    /**
+     * Returns a line object of type "G2" or "G3" (corresponding to
+     * parsedCommand).
+     *
+     * @function returnLine
+     * @memberof GCodeToGeometry.CurvedLine
+     * @instance
+     * @return {Line|boolean} False if impossible line else the line object.
+     */
     that.returnLine = function() {
         var bez = [];
         var axes = GCodeToGeometry.findAxes(that.crossAxe);
@@ -360,8 +375,8 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
     /**
      * Finds the center of the arc. Returns false if impossible.
      *
-     * @param {object} start The starting point of the arc.
-     * @param {object} end The ending point of the arc.
+     * @param {Point} start The starting point of the arc.
+     * @param {Point} end The ending point of the arc.
      * @param {boolean} clockwise If the arc goes clockwise.
      * @param {string} crossAxe The name of the axe given by the cross product
      * of the vectors defining the plane.
@@ -452,23 +467,21 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         return center;
     }
 
-    // The value is include between the value a and b
-    function isInclude(value, a, b) {
-        if(b < a) {  //Swap
-            a = a + b;
-            b = a - b;
-            a = a - b;
-        }
-        return (a <= value && value <= b);
-    }
-
     function axeCutArc(reValue, imValue, angleBezier, cs) {
         //Find the angle in the same orientation than the Bézier's angle
         var a = GCodeToGeometry.findAngleOrientedVectors2(cs,
                 { x : reValue, y : imValue }, that.clockwise === false);
-        return (isInclude(a, 0, angleBezier) === true);
+        return (GCodeToGeometry.isInclude(a, 0, angleBezier) === true);
     }
 
+    /**
+     * Returns the size of the line.
+     *
+     * @function getSize
+     * @memberof GCodeToGeometry.CurvedLine
+     * @instance
+     * @return {Size} The size.
+     */
     that.getSize = function() {
         var axes = GCodeToGeometry.findAxes(that.crossAxe);
         var cs = {

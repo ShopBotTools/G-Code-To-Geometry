@@ -23,8 +23,100 @@
  */
 
 /**
+ * An object defining a cubic Bézier curve.
+ *
+ * @typedef {object} Bezier
+ * @property {Point} p0 - The first control point.
+ * @property {Point} p1 - The second control point.
+ * @property {Point} p2 - The third control point.
+ * @property {Point} p3 - The fourth control point.
+ */
+
+/**
+ * An object defining a line.
+ *
+ * @typedef {object} Line
+ * @property {number} lineNumber - The line number in the G-Code file
+ * corresponding to the line definition.
+ * @property {string} type - The G-Code command.
+ * @property {number} feedrate - The feed rate for doing the path defined by
+ * the line.
+ * @property {Point} [start] - The starting point of the line if type "G0" or
+ * "G1".
+ * @property {Point} [end] - The ending point of the line if type "G0" or "G1".
+ * @property {Bezier[]} [bez] - The bezier curves defining the point if type
+ * "G2" or G3".
+ */
+
+/**
+ * Defines the settings of the G-Code. It changes constantly according to the
+ * G-Code commands used.
+ *
+ * @typedef {object} Settings
+ * @property {string} [crossAxe="z"] - The cross axe.
+ * @property {number} [feedrate=0] - The feed rate.
+ * @property {boolean} [inMm=false] - If the units are in millimeters.
+ * @property {Point} [position={x:0, y:0, z:0}] - The last position of the bit.
+ * @property {string} [previousMoveCommand=""] - The previous move command
+ * ("G0", "G1", "G2", "G3").
+ * @property {boolean} [relative=false] - If the coordinates are relative.
+*/
+
+/**
+ * Defines a single command parsed by the G-Code syntax parser. The definition
+ * is not exhaustive.
+ *
+ * @typedef {object} ParsedCommand
+ * @property {string} type - The command type.
+ * @property {number} [x] - The X argument.
+ * @property {number} [y] - The Y argument.
+ * @property {number} [z] - The Z argument.
+ * @property {number} [f] - The F argument.
+ * @property {number} [r] - The R argument.
+ * @property {number} [i] - The I argument.
+ * @property {number} [j] - The J argument.
+ * @property {number} [k] - The K argument.
+ */
+
+/**
+ * An object defining the size.
+ *
+ * @typedef {object} Size
+ * @property {Point} min - The lowest values in x, y and z coordinates.
+ * @property {Point} max - The highest values in x, y and z coordinates.
+ */
+
+/**
+ * Errors can happen in G-Code files. It can be simple warning where code is
+ * parsed but can have a different behaviour depending on the machine, or it
+ * can be a real error and the command is skipped.
+ *
+ * @typedef {object} Error
+ * @property {number} line - The line number where the error occurs.
+ * @property {string} message - The message explaining the error.
+ * @property {boolean} isSkipped - If the command is skipped.
+ */
+
+/**
+ * An object defining the parsed G-Code. This is what that should be used by
+ * the developper using this library.
+ *
+ * @typedef {object} ParsedGCode
+ * @property {string[]} gcode - The original G-Code, each cell contains a
+ * single command.
+ * @property {Lines[]} lines - The lines defining the path the bit will take.
+ * @property {Size} size - The size the job will take.
+ * @property {boolean} displayInInch - If the job shoud be display in inches.
+ * @property {Error} errorList - The error the G-Code contains.
+ */
+
+/**
  * This file contains useful scripts for different purposes (geometry, object
  * operations...). It also create the GCodeToGeometry namespace.
+ */
+
+/**
+ * Namespace for the library.
  *
  * @namespace
  */
@@ -248,4 +340,17 @@ GCodeToGeometry.findAngleOrientedVectors2 = function(v1, v2, positive) {
     }
 
     return angle;
+};
+
+/**
+ * Checks if the value is include between the value a (include) and b (include).
+ * Order between a and b does not matter.
+ *
+ * @param {number} value - The value.
+ * @param {number} a - The first boundary.
+ * @param {number} b - The second boundary.
+ * @return {boolean} The result.
+ */
+GCodeToGeometry.isInclude = function(value, a, b) {
+    return (b < a) ? (b <= value && value <= a) : (a <= value && value <= b);
 };

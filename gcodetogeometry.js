@@ -7,8 +7,9 @@
 
 /**
  * Parses the GCode into a series of lines and curves and checks if errors.
- * @param  {string}  code  The GCode
- * @returns  {object}  The parsed GCode
+ *
+ * @param {string} code - The GCode.
+ * @returns {ParsedGCode} The parsed GCode.
  */
 GCodeToGeometry.parse = function(code) {
     "use strict";
@@ -105,10 +106,11 @@ GCodeToGeometry.parse = function(code) {
 
     /**
      * Creates an error object.
+     *
      * @param {number} line The line number.
      * @param {string} message The message.
      * @param {boolean} isSkipped If the command is skipped.
-     * @return {object} The error object.
+     * @return {Error} The error object.
      */
     function createError(line, message, isSkipped) {
         return { line : line, message : message, isSkipped : isSkipped };
@@ -182,6 +184,7 @@ GCodeToGeometry.parse = function(code) {
      * @return {object} The point.
     */
     function findPosition (start, parameters, relative, inMm) {
+        console.log(parameters);
         var pos = { x : start.x, y : start.y, z : start.z };
         var d = (inMm === false) ? 1 : GCodeToGeometry.MILLIMETER_TO_INCH;
         if(relative === true) {
@@ -289,6 +292,7 @@ GCodeToGeometry.parse = function(code) {
      * @param  {object}  errorList  The error list
      */
     function manageG0G1(command, settings, lineNumber, lines, totalSize) {
+        console.log(settings);
         var nextPosition = findPosition(settings.position, command,
             settings.relative, settings.inMm);
         var line = new GCodeToGeometry.StraightLine(lineNumber,
