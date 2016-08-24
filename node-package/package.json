@@ -1,0 +1,14 @@
+{
+    "name": "gcodetogeometry",
+    "version": "0.0.1",
+    "description": "Interpolate G-Code commands into geometrical lines",
+    "preferGlobal": "false",
+    "main": "gcodetogeometry.js",
+    "author": "Alex Canales",
+    "keywords": ["gcode", "g-code", "converter", "interpolate", "geometry"],
+    "repository" : {
+        "type": "git",
+        "url": ""
+    },
+    "engines": { "node": "*" }
+}

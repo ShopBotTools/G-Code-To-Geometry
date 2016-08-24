@@ -10,6 +10,13 @@ will be renamed so be careful if you update for a new version.
 Generated API documentation can be found
 [here](http://shopbottools.github.io/G-Code-To-Geometry/).
 
+If you want to use it in node.js, add manually the file in the package folders
+into your node_modules folder. It is not yet updated in npm but will be soon.
+
+Webpack is used for converting the package in a browser version. If you want to
+use it in a browser, include ``gcodetogeometry.js`` located in the ``browser``
+folder.
+
 ## List of supported commands:
 
 This software supports the following commands with the following parameters
