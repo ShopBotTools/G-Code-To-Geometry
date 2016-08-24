@@ -5,6 +5,9 @@
  * Written by Alex Canales for ShopBotTools, Inc.
  */
 
+var GCodeToGeometry = require("./lines").GCodeToGeometry;
+var GParser = require("./parser").GParser;
+
 /**
  * Parses the GCode into a series of lines and curves and checks if errors.
  *
@@ -469,3 +472,5 @@ GCodeToGeometry.parse = function(code) {
         errorList : errorList
     };
 };
+
+exports.GCodeToGeometry = GCodeToGeometry;

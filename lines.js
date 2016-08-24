@@ -5,6 +5,8 @@
  * Written by Alex Canales for ShopBotTools, Inc.
  */
 
+var GCodeToGeometry = require("./util").GCodeToGeometry;
+
 /**
  * This file contains the classes managing the lines. The lines are
  * the representation of the G0, G1, G2 and G3 commands.
@@ -545,3 +547,5 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
 
     initialize(index, start, parsedCommand, settings);
 };
+
+exports.GCodeToGeometry = GCodeToGeometry;

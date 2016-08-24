@@ -1316,3 +1316,5 @@ var GParser = (function() {
     parse:       parse
   };
 })();
+
+exports.GParser = GParser;

@@ -354,3 +354,5 @@ GCodeToGeometry.findAngleOrientedVectors2 = function(v1, v2, positive) {
 GCodeToGeometry.isInclude = function(value, a, b) {
     return (b < a) ? (b <= value && value <= a) : (a <= value && value <= b);
 };
+
+exports.GCodeToGeometry = GCodeToGeometry;
