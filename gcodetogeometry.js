@@ -184,7 +184,6 @@ GCodeToGeometry.parse = function(code) {
      * @return {object} The point.
     */
     function findPosition (start, parameters, relative, inMm) {
-        console.log(parameters);
         var pos = { x : start.x, y : start.y, z : start.z };
         var d = (inMm === false) ? 1 : GCodeToGeometry.MILLIMETER_TO_INCH;
         if(relative === true) {
@@ -292,7 +291,6 @@ GCodeToGeometry.parse = function(code) {
      * @param  {object}  errorList  The error list
      */
     function manageG0G1(command, settings, lineNumber, lines, totalSize) {
-        console.log(settings);
         var nextPosition = findPosition(settings.position, command,
             settings.relative, settings.inMm);
         var line = new GCodeToGeometry.StraightLine(lineNumber,
