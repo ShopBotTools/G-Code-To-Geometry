@@ -1,11 +1,8 @@
-/*jslint todo: true, browser: true, continue: true, white: true*/
-/*global GCodeToGeometry*/
+/*jslint todo: true, continue: true, white: true*/
 
-/**
- * Written by Alex Canales for ShopBotTools, Inc.
- */
+// Written by Alex Canales for ShopBotTools, Inc.
 
-var GCodeToGeometry = require("./util").GCodeToGeometry;
+var util = require("./util");
 
 /**
  * This file contains the classes managing the lines. The lines are
@@ -23,7 +20,7 @@ var GCodeToGeometry = require("./util").GCodeToGeometry;
  * @param {Settings} settings - The modularity settings.
  * @return {StraightLine} An instance of the StraightLine class.
  */
-GCodeToGeometry.StraightLine = function(index, start, end, parsedCommand, settings) {
+var StraightLine = function(index, start, end, parsedCommand, settings) {
     "use strict";
     var that = this;
 
@@ -32,7 +29,7 @@ GCodeToGeometry.StraightLine = function(index, start, end, parsedCommand, settin
      * parsedCommand).
      *
      * @function returnLine
-     * @memberof GCodeToGeometry.StraightLine
+     * @memberof util.StraightLine
      * @instance
      * @return {Line} The line object.
      */
@@ -50,7 +47,7 @@ GCodeToGeometry.StraightLine = function(index, start, end, parsedCommand, settin
      * Returns the size of the line.
      *
      * @function getSize
-     * @memberof GCodeToGeometry.StraightLine
+     * @memberof util.StraightLine
      * @instance
      * @return {Size} The size.
      */
@@ -78,7 +75,7 @@ GCodeToGeometry.StraightLine = function(index, start, end, parsedCommand, settin
         } else if(parsedCommand.f === undefined) {
             that.feedrate = settings.feedrate;
         } else {
-            that.feedrate = GCodeToGeometry.calculateFeedrate(parsedCommand.f,
+            that.feedrate = util.calculateFeedrate(parsedCommand.f,
                     settings.inMm);
         }
     }
@@ -97,27 +94,27 @@ GCodeToGeometry.StraightLine = function(index, start, end, parsedCommand, settin
  * @param {Settings} settings - The modularity settings.
  * @return {CurvedLine} An instance of the CurvedLine class.
  */
-GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings) {
+var CurvedLine = function(index, start, end, parsedCommand, settings) {
     "use strict";
     var that = this;
 
     // Will give 0 if start and end are the same
     function getBezierAngle() {
-        var axes = GCodeToGeometry.findAxes(that.crossAxe);
+        var axes = util.findAxes(that.crossAxe);
         var cs = { x : that.start[axes.re] - that.center[axes.re],
             y : that.start[axes.im] - that.center[axes.im], z : 0};
         var ce = { x : that.end[axes.re] - that.center[axes.re],
             y : that.end[axes.im] - that.center[axes.im], z : 0};
 
-        return GCodeToGeometry.findAngleOrientedVectors2(cs, ce,
+        return util.findAngleOrientedVectors2(cs, ce,
                 that.clockwise === false);
     }
 
     function getBezierRadius() {
-        var axes = GCodeToGeometry.findAxes(that.crossAxe);
+        var axes = util.findAxes(that.crossAxe);
         var cs = { x : that.start[axes.re] - that.center[axes.re],
             y : that.start[axes.im] - that.center[axes.im], z : 0};
-        return GCodeToGeometry.lengthVector3(cs);
+        return util.lengthVector3(cs);
     }
 
     //Simple cubic Bézier curve interpolation clockwise on XY plane
@@ -157,8 +154,8 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         var height = 0;  //height position for p1, p2 and p3
 
         if(clockwise === false) {
-            GCodeToGeometry.swapObjects(curve.p0, curve.p3);
-            GCodeToGeometry.swapObjects(curve.p1, curve.p2);
+            util.swapObjects(curve.p0, curve.p3);
+            util.swapObjects(curve.p1, curve.p2);
         }
 
         //NOTE: maybe this is better:
@@ -203,22 +200,22 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
 
     function rotAndPlaBez(curve, center, angle, re, im) {
         var c = { x : 0, y : 0, z : 0 };
-        GCodeToGeometry.scaleAndRotation(c,curve.p0,curve.p0, angle, 1, re, im);
-        GCodeToGeometry.scaleAndRotation(c,curve.p1,curve.p1, angle, 1, re, im);
-        GCodeToGeometry.scaleAndRotation(c,curve.p2,curve.p2, angle, 1, re, im);
-        GCodeToGeometry.scaleAndRotation(c,curve.p3,curve.p3, angle, 1, re, im);
+        util.scaleAndRotation(c,curve.p0,curve.p0, angle, 1, re, im);
+        util.scaleAndRotation(c,curve.p1,curve.p1, angle, 1, re, im);
+        util.scaleAndRotation(c,curve.p2,curve.p2, angle, 1, re, im);
+        util.scaleAndRotation(c,curve.p3,curve.p3, angle, 1, re, im);
 
-        GCodeToGeometry.movePoint(curve.p0, center);
-        GCodeToGeometry.movePoint(curve.p1, center);
-        GCodeToGeometry.movePoint(curve.p2, center);
-        GCodeToGeometry.movePoint(curve.p3, center);
+        util.movePoint(curve.p0, center);
+        util.movePoint(curve.p1, center);
+        util.movePoint(curve.p2, center);
+        util.movePoint(curve.p3, center);
     }
 
     // The Bézier's curve must be on the good plane
     function getFullBezier(num90, bez90, numSmall, bezSmall, pitch90) {
         var arcs = [];
-        var center = GCodeToGeometry.copyObject(that.center);
-        var axes = GCodeToGeometry.findAxes(that.crossAxe);
+        var center = util.copyObject(that.center);
+        var axes = util.findAxes(that.crossAxe);
         var cs = { x : that.start[axes.re] - center[axes.re],
             y : that.start[axes.im] - center[axes.im] };
         var i = 0, angle = 0, sign = (that.clockwise === true) ? -1 : 1;
@@ -228,13 +225,13 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         }
 
         if(num90 > 0) {
-            angle = GCodeToGeometry.findAngleOrientedVectors2(
+            angle = util.findAngleOrientedVectors2(
                     { x : bez90.p0[axes.re], y : bez90.p0[axes.im] }, cs,
                     that.clockwise === false
                     );
 
             for(i = 0; i < num90; i++) {
-                arcs.push(GCodeToGeometry.copyObject(bez90));
+                arcs.push(util.copyObject(bez90));
                 rotAndPlaBez(arcs[i], center, angle, axes.re, axes.im);
                 // angle += Math.PI / 2 * sign;
                 angle += 1.570796326794897 * sign;
@@ -243,7 +240,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         }
 
         if(numSmall > 0) {
-            angle = GCodeToGeometry.findAngleOrientedVectors2(
+            angle = util.findAngleOrientedVectors2(
                     { x : bezSmall.p0[axes.re], y : bezSmall.p0[axes.im] }, cs,
                     that.clockwise === false
                     );
@@ -251,7 +248,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
             if(num90 !== 0) {
                 angle += num90 * 1.570796326794897 * sign;
             }
-            arcs.push(GCodeToGeometry.copyObject(bezSmall));
+            arcs.push(util.copyObject(bezSmall));
             rotAndPlaBez(arcs[i], center, angle, axes.re, axes.im);
         }
 
@@ -319,8 +316,8 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         var rotAngle = sign * Math.PI * 2;
         var radius = getBezierRadius();
         var i = 0;
-        var center = GCodeToGeometry.copyObject(that.center);
-        var axes = GCodeToGeometry.findAxes(that.crossAxe);
+        var center = util.copyObject(that.center);
+        var axes = util.findAxes(that.crossAxe);
 
         if(radius === 0) {
             return [];
@@ -333,7 +330,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         cubBez2DTo3D(bez90, that.clockwise, pitch, that.crossAxe);
 
         for(i = 0; i < 4; i++) {
-            bezier.push(GCodeToGeometry.copyObject(bez90));
+            bezier.push(util.copyObject(bez90));
             rotAndPlaBez(bezier[i], center, rotAngle, axes.re, axes.im);
             rotAngle += halfPI * sign;
             center[that.crossAxe] += pitch;
@@ -347,13 +344,13 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
      * parsedCommand).
      *
      * @function returnLine
-     * @memberof GCodeToGeometry.CurvedLine
+     * @memberof util.CurvedLine
      * @instance
      * @return {Line|boolean} False if impossible line else the line object.
      */
     that.returnLine = function() {
         var bez = [];
-        var axes = GCodeToGeometry.findAxes(that.crossAxe);
+        var axes = util.findAxes(that.crossAxe);
 
         if(that.start[axes.re] === that.end[axes.re] &&
                 that.start[axes.im] === that.end[axes.im]) {
@@ -390,7 +387,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         };
         var angle = 0, l = 1, lSE = 0, r = Math.abs(radius), aCSCE = 0;
         var center = { x : 0, y : 0, z : 0 };
-        var axes = GCodeToGeometry.findAxes(crossAxe);
+        var axes = util.findAxes(crossAxe);
         lSE = Math.sqrt(se[axes.re] * se[axes.re] + se[axes.im] * se[axes.im]);
 
         if(lSE > Math.abs(radius * 2) || lSE === 0) {
@@ -399,8 +396,8 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
 
         angle = Math.acos(lSE / (2 * r));
         l = r / lSE;
-        GCodeToGeometry.scaleAndRotation(start, end, center, angle, l, axes.re, axes.im);
-        aCSCE = GCodeToGeometry.findAngleVectors2(
+        util.scaleAndRotation(start, end, center, angle, l, axes.re, axes.im);
+        aCSCE = util.findAngleVectors2(
             { x: start[axes.re]-center[axes.re], y: start[axes.im]-center[axes.im] },
             { x: end[axes.re]-center[axes.re], y: end[axes.im]-center[axes.im] }
         );
@@ -421,16 +418,16 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
             }
         }
 
-        GCodeToGeometry.scaleAndRotation(start, end, center, -angle, l, axes.re, axes.im);
+        util.scaleAndRotation(start, end, center, -angle, l, axes.re, axes.im);
         return center;
     }
 
     //radius is positive or negative
     function findCenter(start, end, parsedCommand, clockwise, crossAxe, inMm) {
-        var delta = (inMm === false) ? 1 : GCodeToGeometry.MILLIMETER_TO_INCH;
+        var delta = (inMm === false) ? 1 : util.MILLIMETER_TO_INCH;
         var center = { x : start.x, y : start.y, z : start.z };
         var distCenterStart, distCenterEnd;
-        var axes = GCodeToGeometry.findAxes(crossAxe);
+        var axes = util.findAxes(crossAxe);
 
         if(parsedCommand.r === undefined) {
             if(parsedCommand.i !== undefined) {
@@ -450,12 +447,12 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
             distCenterEnd = Math.pow(center[axes.re] - end[axes.re], 2);
             distCenterEnd += Math.pow(center[axes.im] - end[axes.im], 2);
 
-            if(GCodeToGeometry.nearlyEqual(distCenterStart, 0) === true ||
-                GCodeToGeometry.nearlyEqual(distCenterEnd, 0) === true) {
+            if(util.nearlyEqual(distCenterStart, 0) === true ||
+                util.nearlyEqual(distCenterEnd, 0) === true) {
                 return false;
             }
 
-            if(GCodeToGeometry.nearlyEqual(distCenterStart, distCenterEnd) === false) {
+            if(util.nearlyEqual(distCenterStart, distCenterEnd) === false) {
                 return false;
             }
         } else {
@@ -471,21 +468,21 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
 
     function axeCutArc(reValue, imValue, angleBezier, cs) {
         //Find the angle in the same orientation than the Bézier's angle
-        var a = GCodeToGeometry.findAngleOrientedVectors2(cs,
+        var a = util.findAngleOrientedVectors2(cs,
                 { x : reValue, y : imValue }, that.clockwise === false);
-        return (GCodeToGeometry.isInclude(a, 0, angleBezier) === true);
+        return (util.isInclude(a, 0, angleBezier) === true);
     }
 
     /**
      * Returns the size of the line.
      *
      * @function getSize
-     * @memberof GCodeToGeometry.CurvedLine
+     * @memberof util.CurvedLine
      * @instance
      * @return {Size} The size.
      */
     that.getSize = function() {
-        var axes = GCodeToGeometry.findAxes(that.crossAxe);
+        var axes = util.findAxes(that.crossAxe);
         var cs = {
             x : that.start[axes.re] - that.center[axes.re],
             y : that.start[axes.im] - that.center[axes.im]
@@ -540,7 +537,7 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
         if(parsedCommand.f === undefined) {
             that.feedrate = settings.feedrate;
         } else {
-            that.feedrate = GCodeToGeometry.calculateFeedrate(parsedCommand.f,
+            that.feedrate = util.calculateFeedrate(parsedCommand.f,
                     settings.inMm);
         }
     }
@@ -548,4 +545,5 @@ GCodeToGeometry.CurvedLine = function(index, start, end, parsedCommand, settings
     initialize(index, start, parsedCommand, settings);
 };
 
-exports.GCodeToGeometry = GCodeToGeometry;
+exports.StraightLine = StraightLine;
+exports.CurvedLine = CurvedLine;

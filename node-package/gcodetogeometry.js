@@ -1,11 +1,10 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global GCodeToGeometry, GParser*/
 
-/**
- * Written by Alex Canales for ShopBotTools, Inc.
- */
+// Written by Alex Canales for ShopBotTools, Inc.
 
-var GCodeToGeometry = require("./lines").GCodeToGeometry;
+var util = require("./util");
+var StraightLine = require("./lines").StraightLine;
+var CurvedLine = require("./lines").CurvedLine;
 var GParser = require("./parser").GParser;
 
 /**
@@ -14,7 +13,7 @@ var GParser = require("./parser").GParser;
  * @param {string} code - The GCode.
  * @returns {ParsedGCode} The parsed GCode.
  */
-GCodeToGeometry.parse = function(code) {
+var parse = function(code) {
     "use strict";
 
     var unitIsSet = false;
@@ -188,7 +187,7 @@ GCodeToGeometry.parse = function(code) {
     */
     function findPosition (start, parameters, relative, inMm) {
         var pos = { x : start.x, y : start.y, z : start.z };
-        var d = (inMm === false) ? 1 : GCodeToGeometry.MILLIMETER_TO_INCH;
+        var d = (inMm === false) ? 1 : util.MILLIMETER_TO_INCH;
         if(relative === true) {
             if(parameters.x !== undefined) { pos.x += parameters.x * d; }
             if(parameters.y !== undefined) { pos.y += parameters.y * d; }
@@ -296,12 +295,12 @@ GCodeToGeometry.parse = function(code) {
     function manageG0G1(command, settings, lineNumber, lines, totalSize) {
         var nextPosition = findPosition(settings.position, command,
             settings.relative, settings.inMm);
-        var line = new GCodeToGeometry.StraightLine(lineNumber,
+        var line = new StraightLine(lineNumber,
             settings.position, nextPosition, command, settings);
         settings.previousMoveCommand = command.type;
         checkTotalSize(totalSize, line.getSize());
         lines.push(line.returnLine());
-        settings.position = GCodeToGeometry.copyObject(line.end);
+        settings.position = util.copyObject(line.end);
         if(command.f !== undefined) {
             settings.feedrate = command.f;
         }
@@ -320,7 +319,7 @@ GCodeToGeometry.parse = function(code) {
             errorList) {
         var nextPosition = findPosition(settings.position, command,
             settings.relative, settings.inMm);
-        var line = new GCodeToGeometry.CurvedLine(lineNumber, settings.position,
+        var line = new CurvedLine(lineNumber, settings.position,
             nextPosition, command, settings);
         if(line.center !== false) {
             var temp = line.returnLine();
@@ -334,7 +333,7 @@ GCodeToGeometry.parse = function(code) {
             settings.previousMoveCommand = command.type;
             checkTotalSize(totalSize, line.getSize());
             lines.push(temp);
-            settings.position = GCodeToGeometry.copyObject(line.end);
+            settings.position = util.copyObject(line.end);
         } else {
             errorList.push(createError(
                 lineNumber,
@@ -473,4 +472,4 @@ GCodeToGeometry.parse = function(code) {
     };
 };
 
-exports.GCodeToGeometry = GCodeToGeometry;
+exports.parse = parse;

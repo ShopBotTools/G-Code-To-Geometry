@@ -4,9 +4,9 @@ module.exports = {
         gcodetogeometry : "./node-package/gcodetogeometry.js"
     },
     output: {
-        path: path.join(__dirname, "build"),
+        path: path.join(__dirname, "browser"),
         filename: "[name].js",
-        library: "",
+        library: "gcodetogeometry",
         libraryTarget: "umd"
     }
 };

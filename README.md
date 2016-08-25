@@ -8,7 +8,8 @@ This is a work in progress but it should be functional. Maybe the variables
 will be renamed so be careful if you update for a new version.
 
 Generated API documentation can be found
-[here](http://shopbottools.github.io/G-Code-To-Geometry/).
+[here](http://shopbottools.github.io/G-Code-To-Geometry/). This is only useful
+for people maintaining the library, read below if you want to use the library.
 
 If you want to use it in node.js, add manually the file in the package folders
 into your node_modules folder. It is not yet updated in npm but will be soon.
@@ -77,13 +78,23 @@ The error and warning correspond to the behaviour of the Shopbot Tools'
 machines.
 
 ## How to use it:
-1. Download the minified version (if there is one) and include the file. Or
-download all the scripts and include as in the example.html file.
-2. In your code, you just have to use the function GCodeToGeometry.parse(code).
 
-    var result = GCodeToGeometry.parse(myGCode);
+### How to include the library
 
-The parameter must be the GCode in string.
+**If you use it in a browser**
+
+1. Download the minified version (if there is one) or the non minified version
+   (they are in the folder ``browser``) and include the file. Or download all
+   the scripts and include as in the example.html file.
+2. In your code, you just have to use the function gcodetogeometry.parse(code).
+
+    var result = gcodetogeometry.parse(myGCode);
+
+**If you use it in node js**. The package will be soon updated in npm.
+
+### Function explanation
+
+The parameter of the ``parse`` function must be the GCode in string.
 
 The function will return an object which contains:
 * **gcode** : an array of strings, contains the gcode parsed split (each cell

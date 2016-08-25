@@ -1,8 +1,6 @@
-/*jslint todo: true, browser: true, continue: true, white: true*/
+/*jslint todo: true, continue: true, white: true*/
 
-/**
- * Written by Alex Canales for ShopBotTools, Inc.
- */
+//  Written by Alex Canales for ShopBotTools, Inc.
 
 /**
  * A 3D point.
@@ -112,30 +110,32 @@
 
 /**
  * This file contains useful scripts for different purposes (geometry, object
- * operations...). It also create the GCodeToGeometry namespace.
+ * operations...). It also create the util namespace.
  */
+
+"use strict";
 
 /**
  * Namespace for the library.
  *
  * @namespace
  */
-var GCodeToGeometry = {};
+var util = {};
 
 /**
  * Constant for converting inches values into millimeters values.
  */
-GCodeToGeometry.INCH_TO_MILLIMETER = 25.4;
+util.INCH_TO_MILLIMETER = 25.4;
 
 /**
  * Constant for converting millimeters values into inches values.
  */
-GCodeToGeometry.MILLIMETER_TO_INCH = 0.03937008;
+util.MILLIMETER_TO_INCH = 0.03937008;
 
 /*
- * Precision constant for comparing floats. Used in GCodeToGeometry.nearlyEqual.
+ * Precision constant for comparing floats. Used in util.nearlyEqual.
  */
-GCodeToGeometry.FLOAT_PRECISION = 0.001;
+util.FLOAT_PRECISION = 0.001;
 
 /*
  * Converts the feedrate in inches according to the types of unit used.
@@ -144,8 +144,8 @@ GCodeToGeometry.FLOAT_PRECISION = 0.001;
  * @param {number} inMm - If the feedrate is in millimeters.
  * Returns the feedrate in inches.
  */
-GCodeToGeometry.calculateFeedrate = function(feedrate, inMm) {
-    return (inMm === false) ? feedrate : feedrate * GCodeToGeometry.MILLIMETER_TO_INCH;
+util.calculateFeedrate = function(feedrate, inMm) {
+    return (inMm === false) ? feedrate : feedrate * util.MILLIMETER_TO_INCH;
 };
 
 /**
@@ -155,12 +155,12 @@ GCodeToGeometry.calculateFeedrate = function(feedrate, inMm) {
  *
  * @param {number} a - Number A.
  * @param {number} b - Number B.
- * @param {number} [precision=GCodeToGeometry.FLOAT_PRECISION] - The precision
+ * @param {number} [precision=util.FLOAT_PRECISION] - The precision
  * of the comparaison.
  * @return {boolean} True if the two values are nearly equal.
  */
-GCodeToGeometry.nearlyEqual = function(a, b, precision) {
-    var p = (precision === undefined) ? GCodeToGeometry.FLOAT_PRECISION : precision;
+util.nearlyEqual = function(a, b, precision) {
+    var p = (precision === undefined) ? util.FLOAT_PRECISION : precision;
     return Math.abs(b - a) <= p;
 };
 
@@ -170,7 +170,7 @@ GCodeToGeometry.nearlyEqual = function(a, b, precision) {
  * @param {object} obj1 - The first object.
  * @param {object} obj2 - The second object.
 */
-GCodeToGeometry.swapObjects = function(obj1, obj2) {
+util.swapObjects = function(obj1, obj2) {
     function swapSingleField(objA, objB, key) {
         var temp;
         temp = objA[key];
@@ -182,7 +182,7 @@ GCodeToGeometry.swapObjects = function(obj1, obj2) {
 
     for(i = 0; i < keys.length; i++) {
         if(typeof obj1[keys[i]] === "object") {
-            GCodeToGeometry.swapObjects(obj1[keys[i]], obj2[keys[i]]);
+            util.swapObjects(obj1[keys[i]], obj2[keys[i]]);
         } else {
             swapSingleField(obj1, obj2, keys[i]);
         }
@@ -195,13 +195,13 @@ GCodeToGeometry.swapObjects = function(obj1, obj2) {
  * @param {object} object - The object.
  * @return {object} The copy of the object.
 */
-GCodeToGeometry.copyObject = function(object) {
+util.copyObject = function(object) {
     var keys = Object.keys(object);
     var i = 0;
     var copy = {};
     for(i = 0; i < keys.length; i++) {
         if(typeof object[keys[i]] === "object") {
-            copy[keys[i]] = GCodeToGeometry.copyObject(object[keys[i]]);
+            copy[keys[i]] = util.copyObject(object[keys[i]]);
         } else {
             copy[keys[i]] = object[keys[i]];
         }
@@ -215,7 +215,7 @@ GCodeToGeometry.copyObject = function(object) {
  * @param {Point} point - The point to move.
  * @param {Point} vector - The vector.
  */
-GCodeToGeometry.movePoint = function(point, vector) {
+util.movePoint = function(point, vector) {
     var keys = Object.keys(vector);
     var i = 0;
     for(i = 0; i < keys.length; i++) {
@@ -232,7 +232,7 @@ GCodeToGeometry.movePoint = function(point, vector) {
  * @param {Point} v2 - The second vector.
  * @return {number} The result.
  */
-GCodeToGeometry.dotProduct2 = function(v1, v2) {
+util.dotProduct2 = function(v1, v2) {
     return v1.x * v2.x + v1.y * v2.y;
 };
 
@@ -243,7 +243,7 @@ GCodeToGeometry.dotProduct2 = function(v1, v2) {
  * @param {Point} v2 - The second vector.
  * @return {number} The result on the Z axis.
  */
-GCodeToGeometry.crossProduct2 = function(v1, v2) {
+util.crossProduct2 = function(v1, v2) {
     return v1.x * v2.y - v2.x * v1.y;
 };
 
@@ -253,7 +253,7 @@ GCodeToGeometry.crossProduct2 = function(v1, v2) {
  * @param {Point} v - The vector.
  * @return {number} The vector length.
  */
-GCodeToGeometry.lengthVector3 = function(v) {
+util.lengthVector3 = function(v) {
     return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 };
 
@@ -268,7 +268,7 @@ GCodeToGeometry.lengthVector3 = function(v) {
  * not "x" or "y".
  * @return {Axes} The object defining the real, imaginary and cross axis.
  */
-GCodeToGeometry.findAxes = function(crossAxe) {
+util.findAxes = function(crossAxe) {
     if(crossAxe.toLowerCase() === "x") {
         return { re : "y", im : "z", cr : "x"};
     }
@@ -290,7 +290,7 @@ GCodeToGeometry.findAxes = function(crossAxe) {
  * @param {string} re - The real axis.
  * @param {string} im - The imaginary axis.
  */
-GCodeToGeometry.scaleAndRotation = function(
+util.scaleAndRotation = function(
     center, point, newPoint, angle, length, re, im
 ) {
     var c = center, p = point, nP = newPoint;
@@ -308,9 +308,9 @@ GCodeToGeometry.scaleAndRotation = function(
  * @param {Point} v2 - The second vector.
  * @return {number} The angle in radian.
  */
-GCodeToGeometry.findAngleVectors2 = function(v1, v2) {
-    var sign = (GCodeToGeometry.crossProduct2(v1, v2) < 0) ? -1 : 1;
-    var dot = GCodeToGeometry.dotProduct2(v1, v2);
+util.findAngleVectors2 = function(v1, v2) {
+    var sign = (util.crossProduct2(v1, v2) < 0) ? -1 : 1;
+    var dot = util.dotProduct2(v1, v2);
     var lV1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
     var lV2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
 
@@ -329,8 +329,8 @@ GCodeToGeometry.findAngleVectors2 = function(v1, v2) {
  * @param {boolean} positive - If the oriented angle goes counter-clockwise.
  * @return {number} The angle in radian.
  */
-GCodeToGeometry.findAngleOrientedVectors2 = function(v1, v2, positive) {
-    var angle =  GCodeToGeometry.findAngleVectors2(v1, v2);
+util.findAngleOrientedVectors2 = function(v1, v2, positive) {
+    var angle =  util.findAngleVectors2(v1, v2);
 
     if(positive === false && angle > 0) {
         return angle - Math.PI * 2;
@@ -351,8 +351,12 @@ GCodeToGeometry.findAngleOrientedVectors2 = function(v1, v2, positive) {
  * @param {number} b - The second boundary.
  * @return {boolean} The result.
  */
-GCodeToGeometry.isInclude = function(value, a, b) {
+util.isInclude = function(value, a, b) {
     return (b < a) ? (b <= value && value <= a) : (a <= value && value <= b);
 };
 
-exports.GCodeToGeometry = GCodeToGeometry;
+var keys = Object.keys(util);
+var i = 0;
+for(i = 0; i < keys.length; i++) {
+    exports[keys[i]] = util[keys[i]];
+}
