@@ -1,9 +1,9 @@
-# Handibot-GCode-To-Geometry
+# G-code to geometry
 
 Parse GCode into geometrical lines and curves.
 
-This program is a part of the Shopbot Tools new system but it can be used
-independently.
+This program is a part of the Shopbot Tools new system called Fabmo but it can
+be used independently.
 
 This software uses a modified version of [Ryan Sturmer's
 node-gcode](https://github.com/ryansturmer/node-gcode) under MIT license. The
@@ -22,12 +22,14 @@ will be updated later but functionnalities are still the same.
 
 ## Including this library
 
-If you want to use it in node.js, add manually the file in the package folders
-into your node_modules folder. It is not yet updated in npm but will be soon.
+If you want to use it in node.js.
+
+    npm install gcodetogeometry
 
 Webpack is used for converting the package in a browser version. If you want to
-use it in a browser, include ``gcodetogeometry.js`` located in the ``browser``
-folder.
+use it in a browser, include ``gcodetogeometry.js`` or
+``gcodetogeometry.min.js`` located in the ``browser`` folder in the git
+repository.
 
 ## List of supported commands:
 
